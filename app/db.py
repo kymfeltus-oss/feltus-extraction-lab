@@ -395,6 +395,13 @@ class Database:
                     conn.execute("CREATE INDEX IF NOT EXISTS ix_usage_records_user ON usage_records(user_id)")
                     conn.execute("CREATE INDEX IF NOT EXISTS ix_usage_records_created ON usage_records(created_at)")
 
+            # Deterministic fix: ensure organizations.domain exists for every initialization path
+            if conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='organizations'").fetchone():
+                org_columns = {row[1] for row in conn.execute("PRAGMA table_info(organizations)").fetchall()}
+                if "domain" not in org_columns:
+                    conn.execute("ALTER TABLE organizations ADD COLUMN domain TEXT")
+                conn.execute("CREATE INDEX IF NOT EXISTS ix_organizations_domain ON organizations(domain)")
+
     @contextmanager
     def connect(self) -> Iterator[sqlite3.Connection]:
         conn = sqlite3.connect(self.path)
