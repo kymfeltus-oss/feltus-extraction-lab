@@ -1,0 +1,11 @@
+__pycache__/
+.pytest_cache/
+.venv/
+data/
+*.pyc
+
+
+.vercel
+.env
+extraction-lab/
+.runtime/

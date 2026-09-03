@@ -1,0 +1,52 @@
+#drop-zone {
+  min-height: 175px;
+}
+
+.source-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.source-buttons button {
+  border: 1px solid #c8d5df;
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 12px;
+}
+
+.source-buttons button:hover {
+  background: #edf5f2;
+  filter: none;
+}
+
+#selected-file {
+  margin-top: 9px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+#run-path {
+  color: var(--green);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+#upload-message.batch-summary {
+  color: var(--ink);
+}
+
+#upload-message.batch-summary.error {
+  color: var(--red);
+}
+
+@media (max-width: 600px) {
+  .source-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .source-buttons button {
+    width: 100%;
+  }
+}

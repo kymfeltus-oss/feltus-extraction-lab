@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FELTUS Extraction Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/interpretation.css">
+  <link rel="stylesheet" href="/static/batch-upload.css">
+  <script src="/static/branding.js"></script>
+  <script>
+    if (typeof BRANDING !== 'undefined') {
+      document.title = BRANDING.appName;
+    }
+  </script>
+  <script src="/static/app.js" defer></script>
+  <script src="/static/interpretation.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" id="brand">
+      <img id="brand-logo" class="brand-logo" hidden alt="Brand logo">
+      <div class="brand-mark" id="brand-mark">F</div>
+      <div class="brand-text">
+        <strong id="brand-name">FELTUS</strong>
+        <span id="brand-tagline">Extraction Lab</span>
+      </div>
+    </div>
+    <div class="topbar-center">
+      <div id="health" class="health"><i></i><span>Checking service</span></div>
+      <div class="max-upload">Max <span id="max-upload-size">250</span> MB per PDF</div>
+    </div>
+    <button id="logout-button" class="logout" hidden>Log out</button>
+  </header>
+
+  <section id="login-screen" class="login-screen" hidden>
+    <div class="login-card">
+      <img id="login-logo" class="login-logo" hidden alt="Brand logo">
+      <div class="brand-mark" id="login-brand-mark">F</div>
+      <h1 id="login-app-name">FELTUS Extraction Lab</h1>
+      <p id="login-tagline" class="tagline">Sign in to your extraction workspace</p>
+      <form id="login-form">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" name="email" placeholder="you@company.com" required autocomplete="email">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" name="password" placeholder="Password" required autocomplete="current-password">
+        <p id="login-error" class="login-error" role="alert" hidden></p>
+        <button type="submit" id="login-button">Sign In</button>
+      </form>
+      <p class="login-trust"><span>✓</span> Secure workspace · tenant-isolated · audit-ready</p>
+    </div>
+  </section>
+
+  <main id="app-main" class="app-main" hidden>
+    <section class="hero">
+      <div class="hero-text">
+        <p class="eyebrow">ISOLATED EVIDENCE INGESTION</p>
+        <h1>Turn source PDFs into <em class="brand-gradient">reviewable financial data</em>.</h1>
+        <p>Preserve the original. Transcribe every page. Extract text and tables. Use OCR when needed. Create a traceable source layer before analysis.</p>
+      </div>
+      <form id="upload-form" class="upload-card">
+        <input id="pdf-files" name="files" type="file" accept="application/pdf,.pdf" multiple hidden>
+        <input id="pdf-folder" name="folder" type="file" accept="application/pdf,.pdf" webkitdirectory directory multiple hidden>
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose PDF files or drop a folder">
+          <span class="upload-icon">⇪</span>
+          <strong>Choose files, choose a folder, or drop them here</strong>
+          <small>PDF files only · maximum <span id="max-upload-size-card">250</span> MB per PDF</small>
+          <div class="source-buttons">
+            <button id="choose-files" type="button" class="secondary">Choose PDF Files</button>
+            <button id="choose-folder" type="button" class="secondary">Choose Folder</button>
+            <button id="clear-selection" type="button" class="secondary" hidden>Clear</button>
+          </div>
+          <span id="selected-file" class="selected-file">No PDFs selected</span>
+        </div>
+        <button id="upload-button" type="submit" class="extract" disabled>Extract Selected PDFs</button>
+        <p id="upload-message" role="status"></p>
+      </form>
+    </section>
+
+    <section class="dashboard-metrics" id="dashboard-metrics" aria-label="Dashboard metrics">
+      <button class="metric-card" data-filter="all" type="button">
+        <div class="metric-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Total Uploads</span>
+          <strong class="metric-value" id="metric-total-uploads">0</strong>
+        </div>
+        <div class="metric-glow"></div>
+      </button>
+      <button class="metric-card" data-filter="extracted" type="button">
+        <div class="metric-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Total Extracted</span>
+          <strong class="metric-value" id="metric-total-extracted">0</strong>
+        </div>
+        <div class="metric-glow"></div>
+      </button>
+      <button class="metric-card" data-filter="rejected" type="button">
+        <div class="metric-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="metric-info">
+          <span class="metric-label">Total Rejected</span>
+          <strong class="metric-value" id="metric-total-rejected">0</strong>
+        </div>
+        <div class="metric-glow"></div>
+      </button>
+    </section>
+
+    <section class="workspace" id="workspace">
+      <aside class="run-history" id="run-history">
+        <div class="run-history-header">
+          <div>
+            <p class="eyebrow">RUN HISTORY</p>
+            <h2 id="run-history-title">Extraction runs</h2>
+          </div>
+          <button id="refresh" class="icon-button" title="Refresh" type="button">↻</button>
+        </div>
+        <div id="run-list" class="run-list"><p class="empty">No extraction runs yet.</p></div>
+      </aside>
+      <section id="review-panel" class="review-panel empty-panel">
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <h2>Extraction Output &amp; Review</h2>
+          <p>Select a run from the history to review extracted content.</p>
+          <p class="secondary-text">Extracted text, tables, and metadata will appear here.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <template id="review-template">
+    <header class="review-header">
+      <div class="review-title">
+        <p class="eyebrow">REVIEW WORKSPACE</p>
+        <h2 id="run-title"></h2>
+        <p id="run-path"></p>
+        <p id="run-meta"></p>
+      </div>
+      <div class="header-actions">
+        <button id="interpret" type="button">Interpret Bank Statement</button>
+        <button id="rerun" class="secondary" type="button">Run Again</button>
+        <a id="export" class="button-link">Export Step 1</a>
+      </div>
+    </header>
+    <div id="status-strip" class="status-strip"></div>
+    <div class="metrics">
+      <article><span>Source format</span><strong id="metric-type"></strong></article>
+      <article><span>Page coverage</span><strong id="metric-classification"></strong></article>
+      <article><span>Transcription</span><strong id="metric-extraction"></strong></article>
+      <article><span>OCR fallback</span><strong id="metric-ocr"></strong></article>
+    </div>
+    <nav class="tabs" aria-label="Extraction result views">
+      <button class="active" data-tab="compare" type="button">Compare</button>
+      <button data-tab="json" type="button">Normalized JSON</button>
+      <button data-tab="provenance" type="button">Provenance</button>
+      <button data-tab="raw" type="button">Raw extraction</button>
+    </nav>
+    <div id="tab-compare" class="tab-pane active compare-grid">
+      <article class="panel"><div class="panel-title"><h3>Original evidence</h3><a id="open-pdf" target="_blank">Open PDF</a></div><iframe id="pdf-viewer" title="Original PDF"></iframe></article>
+      <article class="panel"><div class="panel-title"><h3>Structured result</h3><span id="schema-version"></span></div><div id="result-summary" class="result-summary"></div></article>
+    </div>
+    <div id="tab-json" class="tab-pane"><pre id="json-output"></pre></div>
+    <div id="tab-provenance" class="tab-pane table-wrap"><table><thead><tr><th>Field</th><th>Value</th><th>Page</th><th>Confidence</th><th>Source</th></tr></thead><tbody id="provenance-body"></tbody></table></div>
+    <div id="tab-raw" class="tab-pane"><pre id="raw-output"></pre></div>
+    <section id="interpretation-panel" class="interpretation-panel" hidden></section>
+    <section class="review-decision">
+      <div><p class="eyebrow">PROFESSIONAL REVIEW</p><h3>Record a decision</h3><p>Decisions are appended to the immutable run; they never rewrite the extracted evidence.</p></div>
+      <textarea id="review-note" placeholder="Optional review note"></textarea>
+      <div class="decision-buttons"><button data-decision="APPROVED" type="button">Approve</button><button class="secondary" data-decision="NEEDS_CORRECTION" type="button">Needs correction</button><button class="danger" data-decision="REJECTED" type="button">Reject</button></div>
+      <div id="review-history"></div>
+    </section>
+  </template>
+</body>
+</html>

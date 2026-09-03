@@ -1,0 +1,10 @@
+.interpretation-panel { border-top: 3px solid var(--green); padding: 22px 25px; background: #f6fbf9; }
+.interpretation-panel h3 { font: 500 23px Georgia; margin: 0 0 10px; }
+.interpretation-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.interpretation-grid article { background: #fff; border: 1px solid var(--line); padding: 12px; border-radius: 6px; }
+.interpretation-grid span { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.interpretation-grid strong { font-size: 15px; }
+.interpretation-panel table { margin-top: 15px; background: #fff; }
+.recon-verified { color: var(--green); }
+.recon-variance, .recon-incomplete { color: var(--red); }
+@media (max-width: 980px) { .interpretation-grid { grid-template-columns: repeat(2, 1fr); } }

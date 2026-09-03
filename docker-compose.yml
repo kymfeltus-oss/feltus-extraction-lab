@@ -1,0 +1,17 @@
+services:
+  extraction-lab:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      EXTRACTION_LAB_DATA_DIR: /app/data
+      EXTRACTION_LAB_MAX_UPLOAD_MB: 40
+      EXTRACTION_LAB_OCR_DPI: 200
+      EXTRACTION_LAB_OCR_LANGUAGE: eng
+    volumes:
+      - extraction_lab_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  extraction_lab_data:
+

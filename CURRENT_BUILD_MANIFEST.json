@@ -1,0 +1,33 @@
+{
+  "product": "FELTUS Universal Evidence Extraction Lab",
+  "build": "current",
+  "installation_mode": "FRESH_CLEAN",
+  "data_included": false,
+  "sample_or_demo_records_included": false,
+  "main_application_included_or_modified": false,
+  "max_pdf_size_mb": 250,
+  "bulk_export_formats": [
+    "text",
+    "json",
+    "complete"
+  ],
+  "bulk_export_selection": "LATEST_RUN_PER_UPLOADED_DOCUMENT",
+  "bulk_export_preserves_source_folders": true,
+  "bulk_export_manifest_included": true,
+  "bulk_category_assignment": {
+    "select_visible": true,
+    "select_all_files": true,
+    "standard_categories": true,
+    "custom_categories": true,
+    "clear_category": true,
+    "atomic_database_write": true,
+    "immediate_dashboard_recalculation": true
+  },
+  "folder_ingestion_identity": {
+    "accept_same_filename_in_different_folders": true,
+    "accept_identical_content_in_different_paths": true,
+    "skip_existing_source_path": true,
+    "automatic_rename": false
+  },
+  "verified_test_count": 31
+}
