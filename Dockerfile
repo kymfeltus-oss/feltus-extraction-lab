@@ -9,6 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY static ./static
+COPY public ./public
 RUN mkdir -p /app/data/uploads
 
 ENV EXTRACTION_LAB_DATA_DIR=/app/data

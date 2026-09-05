@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -24,6 +24,9 @@ from .service import IngestionService, UploadTooLarge
 from .supabase_storage import SupabaseStorage
 from .supabase_usage import SupabaseUsage
 from .supabase_documents import SupabaseDocuments
+from .billing_routes import router as billing_router
+from .signup_routes import router as signup_router
+
 
 
 settings = get_settings()
@@ -37,7 +40,10 @@ supabase_usage = SupabaseUsage()
 supabase_documents = SupabaseDocuments()
 
 app = FastAPI(title=APP_TITLE, version=APP_VERSION)
+app.include_router(billing_router)
+app.include_router(signup_router)
 app.mount("/static", StaticFiles(directory=settings.root_dir / "static"), name="static")
+app.mount("/images", StaticFiles(directory=settings.root_dir / "public" / "images"), name="images")
 
 # Store database and auth service in app state for dependency injection
 app.state.database = database
@@ -167,9 +173,16 @@ def switch_organization(
     }
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/app", response_class=HTMLResponse)
 def index() -> FileResponse:
     return FileResponse(settings.root_dir / "static" / "index.html")
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/pricing", response_class=HTMLResponse)
+def pricing() -> FileResponse:
+    return FileResponse(
+        settings.root_dir / "static" / "pricing.html"
+    )
 
 
 @app.get("/health")
@@ -348,5 +361,7 @@ def get_branding(auth_context: AuthContext = Depends(get_current_user)) -> dict:
 def get_public_branding(request: Request, slug: str | None = None) -> dict:
     hostname = request.headers.get("host")
     return database.get_public_branding(slug=slug, hostname=hostname)
+
+
 
 

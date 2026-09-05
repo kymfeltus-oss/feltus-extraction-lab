@@ -7,7 +7,7 @@ const BRANDING = {
   appTitle: "FELTUS Universal Evidence Extraction Lab",
   appVersion: "3.1.0",
   maxUploadMB: 250,
-  logoUrl: "/static/images/logo.png",
+  logoUrl: "/images/logo.png",
   faviconUrl: null,
   primaryColor: "#07172a",
   secondaryColor: "#40bb90",
@@ -28,9 +28,12 @@ function applyBranding(brand) {
   const brandName = document.getElementById("brand-name");
   const brandTagline = document.getElementById("brand-tagline");
   const brandLogo = document.getElementById("brand-logo");
+  const brandMarkSidebar = document.getElementById("brand-mark-sidebar");
+  const brandLogoSidebar = document.getElementById("brand-logo-sidebar");
   const loginBrandMark = document.getElementById("login-brand-mark");
   const loginAppName = document.getElementById("login-app-name");
   const loginLogo = document.getElementById("login-logo");
+  const heroLogo = document.getElementById("hero-logo");
 
   const initial = brand.brandInitial || (brand.brandName || "F").charAt(0).toUpperCase();
   const name = brand.brandName || "FELTUS";
@@ -45,13 +48,19 @@ function applyBranding(brand) {
   // Logo images
   if (brand.logoUrl) {
     if (brandLogo) { brandLogo.src = brand.logoUrl; brandLogo.hidden = false; }
+    if (brandLogoSidebar) { brandLogoSidebar.src = brand.logoUrl; brandLogoSidebar.hidden = false; }
     if (loginLogo) { loginLogo.src = brand.logoUrl; loginLogo.hidden = false; }
+    if (heroLogo) { heroLogo.src = brand.logoUrl; heroLogo.hidden = false; }
     if (brandMark) brandMark.hidden = true;
+    if (brandMarkSidebar) brandMarkSidebar.hidden = true;
     if (loginBrandMark) loginBrandMark.hidden = true;
   } else {
     if (brandLogo) brandLogo.hidden = true;
+    if (brandLogoSidebar) brandLogoSidebar.hidden = true;
     if (loginLogo) loginLogo.hidden = true;
+    if (heroLogo) heroLogo.hidden = true;
     if (brandMark) brandMark.hidden = false;
+    if (brandMarkSidebar) brandMarkSidebar.hidden = false;
     if (loginBrandMark) loginBrandMark.hidden = false;
   }
 
@@ -81,8 +90,25 @@ function applyBranding(brand) {
     link.href = brand.faviconUrl;
   }
 
+  // Support links
+  const loginSupport = document.getElementById("login-support");
+  const loginSupportWrap = document.getElementById("login-support-wrap");
+  const dashboardSupport = document.getElementById("support-link");
+  if (brand.supportEmail) {
+    if (loginSupport) {
+      loginSupport.href = `mailto:${brand.supportEmail}`;
+      loginSupport.hidden = false;
+    }
+    if (loginSupportWrap) loginSupportWrap.hidden = false;
+    if (dashboardSupport) dashboardSupport.href = `mailto:${brand.supportEmail}`;
+  } else {
+    if (loginSupport) loginSupport.hidden = true;
+    if (loginSupportWrap) loginSupportWrap.hidden = true;
+    if (dashboardSupport) dashboardSupport.href = "#";
+  }
+
   // Logo could be applied to brand mark if logo_url is provided (overrides text)
-  [brandMark, loginBrandMark].forEach(mark => {
+  [brandMark, brandMarkSidebar, loginBrandMark].forEach(mark => {
     if (brand.logoUrl && mark) {
       mark.textContent = "";
       mark.classList.add("has-logo");
@@ -127,3 +153,10 @@ function applyBranding(brand) {
     // Keep default FELTUS branding on error / unknown tenant
   }
 })();
+
+// Apply the default FELTUS branding once the DOM is ready, then let the API override it
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => applyBranding(BRANDING));
+} else {
+  applyBranding(BRANDING);
+}

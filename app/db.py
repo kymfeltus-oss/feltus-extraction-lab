@@ -364,7 +364,7 @@ class Database:
                             footer_text, privacy_url, terms_url, created_at, updated_at)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """, (
-                            feltus["id"], "FELTUS Extraction Lab", "FELTUS", "/static/images/logo.png", None,
+                            feltus["id"], "FELTUS Extraction Lab", "FELTUS", "/images/logo.png", None,
                             "#07172a", "#40bb90", "#50d6a6", "FELTUS", None,
                             "FELTUS Extraction Lab", None, None, now_iso(), now_iso()
                         ))
@@ -375,7 +375,13 @@ class Database:
                         conn.execute("""
                         UPDATE tenant_branding SET logo_url = ?
                         WHERE organization_id = ? AND (logo_url IS NULL OR logo_url = '')
-                        """, ("/static/images/logo.png", feltus["id"]))
+                        """, ("/images/logo.png", feltus["id"]))
+
+                # Migrate legacy default logo paths to the authoritative public asset
+                conn.execute("""
+                UPDATE tenant_branding SET logo_url = ?
+                WHERE logo_url = ?
+                """, ("/images/logo.png", "/static/images/logo.png"))
 
                 # Usage tracking table
                 usage_tables = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='usage_records'").fetchall()
@@ -771,7 +777,7 @@ class Database:
         return {
             "app_name": "FELTUS Extraction Lab",
             "brand_name": "FELTUS",
-            "logo_url": "/static/images/logo.png",
+            "logo_url": "/images/logo.png",
             "favicon_url": None,
             "primary_color": "#07172a",
             "secondary_color": "#40bb90",

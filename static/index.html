@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/login.css">
+  <link rel="stylesheet" href="/static/dashboard.css">
   <link rel="stylesheet" href="/static/interpretation.css">
   <link rel="stylesheet" href="/static/batch-upload.css">
   <script src="/static/branding.js"></script>
@@ -16,166 +18,1131 @@
       document.title = BRANDING.appName;
     }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="/static/app.js" defer></script>
   <script src="/static/interpretation.js" defer></script>
+
+<!-- FELTUS SIGNUP STYLE START -->
+<style>
+.feltus-auth-switch {
+    margin-top: 18px;
+    text-align: center;
+    color: rgba(255,255,255,.72);
+    font-size: 14px;
+}
+
+.feltus-auth-switch-button {
+    border: 0;
+    background: transparent;
+    color: #44d7ff;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 4px;
+}
+
+.feltus-auth-switch-button:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+.feltus-signup-success {
+    border: 1px solid rgba(61, 231, 177, .35);
+    background: rgba(20, 150, 110, .12);
+    color: #9ff7d6;
+    border-radius: 8px;
+    padding: 12px;
+    line-height: 1.45;
+    font-size: 14px;
+}
+</style>
+<!-- FELTUS SIGNUP STYLE END -->
+
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" id="topbar" hidden>
     <div class="brand" id="brand">
-      <img id="brand-logo" class="brand-logo" hidden alt="Brand logo">
+      <img id="brand-logo" class="brand-logo" src="/images/logo.png" alt="Brand logo">
       <div class="brand-mark" id="brand-mark">F</div>
       <div class="brand-text">
         <strong id="brand-name">FELTUS</strong>
         <span id="brand-tagline">Extraction Lab</span>
       </div>
     </div>
-    <div class="topbar-center">
-      <div id="health" class="health"><i></i><span>Checking service</span></div>
-      <div class="max-upload">Max <span id="max-upload-size">250</span> MB per PDF</div>
-    </div>
-    <button id="logout-button" class="logout" hidden>Log out</button>
   </header>
 
+  <div id="auth-loading" class="auth-loading" aria-live="polite">
+    <div class="auth-loading-spinner" aria-hidden="true"></div>
+    <p>Loading...</p>
+  </div>
+
+  <svg class="icon-sprite" style="display:none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>
+    </symbol>
+    <symbol id="icon-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    </symbol>
+    <symbol id="icon-history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+    </symbol>
+    <symbol id="icon-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+    </symbol>
+    <symbol id="icon-template" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </symbol>
+    <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M14.5 10.5 18 7"/><path d="M16.5 10.5 18 9"/><circle cx="12" cy="12" r="8"/>
+    </symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>
+    </symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </symbol>
+    <symbol id="icon-logout" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+    </symbol>
+    <symbol id="icon-upload-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 13V5"/><path d="m16 9-4-4-4 4"/>
+    </symbol>
+    <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9L10 6H20a2 2 0 0 1 2 2v1.5"/>
+    </symbol>
+    <symbol id="icon-file-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 12v6"/><path d="m15 13-3-3-3 3"/>
+    </symbol>
+    <symbol id="icon-file-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 13 2 2 4-4"/>
+    </symbol>
+    <symbol id="icon-triangle-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>
+    </symbol>
+    <symbol id="icon-document" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/>
+    </symbol>
+  </svg>
+
   <section id="login-screen" class="login-screen" hidden>
-    <div class="login-card">
-      <img id="login-logo" class="login-logo" hidden alt="Brand logo">
-      <div class="brand-mark" id="login-brand-mark">F</div>
-      <h1 id="login-app-name">FELTUS Extraction Lab</h1>
-      <p id="login-tagline" class="tagline">Sign in to your extraction workspace</p>
-      <form id="login-form">
-        <label for="login-email">Email</label>
-        <input id="login-email" type="email" name="email" placeholder="you@company.com" required autocomplete="email">
-        <label for="login-password">Password</label>
-        <input id="login-password" type="password" name="password" placeholder="Password" required autocomplete="current-password">
-        <p id="login-error" class="login-error" role="alert" hidden></p>
-        <button type="submit" id="login-button">Sign In</button>
-      </form>
-      <p class="login-trust"><span>✓</span> Secure workspace · tenant-isolated · audit-ready</p>
+    <div class="login-image-wrapper">
+      <img src="/images/login-image.png" class="login-image" alt="FELTUS Extraction Lab login">
+      <div class="login-form-overlay">
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to your extraction workspace</p>
+          </div>
+          <form id="login-form" class="auth-form">
+            <div class="field-group">
+              <label for="login-email">Email Address</label>
+              <input id="login-email" type="email" name="email" placeholder="you@company.com" required autocomplete="email" autocapitalize="off" inputmode="email">
+            </div>
+            <div class="field-group">
+              <label for="login-password">Password</label>
+              <div class="password-wrap">
+                <input id="login-password" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                <button type="button" id="login-toggle-password" class="password-toggle" aria-label="Show password" aria-controls="login-password" aria-pressed="false">
+                  <svg id="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg id="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.83 9.83 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-3.72.99l-3.54-3.54M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </div>
+            <p id="login-error" class="auth-error" role="alert" hidden></p>
+            <button type="submit" id="login-button" class="auth-submit">
+              <span class="spinner" aria-hidden="true" hidden></span>
+              <span class="button-text">Sign In</span>
+              <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </button>
+          </form>
+<!-- FELTUS CREATE ACCOUNT UI START -->
+
+<div id="auth-switch" class="feltus-auth-switch">
+    <span id="auth-switch-label">
+        New to FELTUS?
+    </span>
+
+    <button
+        type="button"
+        id="auth-switch-button"
+        class="feltus-auth-switch-button">
+        Create Account
+    </button>
+</div>
+
+
+<form
+    id="signup-form"
+    class="auth-form"
+    hidden>
+
+    <div class="field-group">
+        <label for="signup-name">
+            Full Name
+        </label>
+
+        <input
+            id="signup-name"
+            type="text"
+            name="full_name"
+            placeholder="Your name"
+            required
+            autocomplete="name">
+    </div>
+
+
+    <div class="field-group">
+        <label for="signup-organization">
+            Company / Workspace
+        </label>
+
+        <input
+            id="signup-organization"
+            type="text"
+            name="organization_name"
+            placeholder="Company or workspace name"
+            autocomplete="organization">
+    </div>
+
+
+    <div class="field-group">
+        <label for="signup-email">
+            Email Address
+        </label>
+
+        <input
+            id="signup-email"
+            type="email"
+            name="email"
+            placeholder="you@company.com"
+            required
+            autocomplete="email"
+            autocapitalize="off"
+            inputmode="email">
+    </div>
+
+
+    <div class="field-group">
+        <label for="signup-password">
+            Password
+        </label>
+
+        <input
+            id="signup-password"
+            type="password"
+            name="password"
+            placeholder="Minimum 8 characters"
+            required
+            minlength="8"
+            autocomplete="new-password">
+    </div>
+
+
+    <div class="field-group">
+        <label for="signup-confirm-password">
+            Confirm Password
+        </label>
+
+        <input
+            id="signup-confirm-password"
+            type="password"
+            name="confirm_password"
+            placeholder="Confirm your password"
+            required
+            minlength="8"
+            autocomplete="new-password">
+    </div>
+
+
+    <p
+        id="signup-error"
+        class="auth-error"
+        role="alert"
+        hidden>
+    </p>
+
+
+    <p
+        id="signup-success"
+        class="feltus-signup-success"
+        hidden>
+    </p>
+
+
+    <button
+        type="submit"
+        id="signup-button"
+        class="auth-submit">
+
+        <span
+            class="spinner"
+            aria-hidden="true"
+            hidden>
+        </span>
+
+        <span class="button-text">
+            Create Account
+        </span>
+
+        <svg
+            class="arrow"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true">
+
+            <path d="M5 12h14M13 5l7 7-7 7"/>
+        </svg>
+
+    </button>
+
+</form>
+
+<!-- FELTUS CREATE ACCOUNT UI END -->
+          <div class="auth-footer">
+            <p class="auth-security">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Secure &amp; Encrypted
+            </p>
+            <p id="login-support-wrap" class="auth-support" hidden>
+              Need help? <a id="login-support" href="#">Contact support</a>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <main id="app-main" class="app-main" hidden>
-    <section class="hero">
-      <div class="hero-text">
-        <p class="eyebrow">ISOLATED EVIDENCE INGESTION</p>
-        <h1>Turn source PDFs into <em class="brand-gradient">reviewable financial data</em>.</h1>
-        <p>Preserve the original. Transcribe every page. Extract text and tables. Use OCR when needed. Create a traceable source layer before analysis.</p>
+    <aside class="dashboard-sidebar" aria-label="Application navigation">
+      <div class="sidebar-brand">
+        <img id="brand-logo-sidebar" class="brand-logo" src="/images/logo.png" alt="" hidden>
+        <div id="brand-mark-sidebar" class="brand-mark" aria-hidden="true">F</div>
       </div>
-      <form id="upload-form" class="upload-card">
-        <input id="pdf-files" name="files" type="file" accept="application/pdf,.pdf" multiple hidden>
-        <input id="pdf-folder" name="folder" type="file" accept="application/pdf,.pdf" webkitdirectory directory multiple hidden>
-        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose PDF files or drop a folder">
-          <span class="upload-icon">⇪</span>
-          <strong>Choose files, choose a folder, or drop them here</strong>
-          <small>PDF files only · maximum <span id="max-upload-size-card">250</span> MB per PDF</small>
-          <div class="source-buttons">
-            <button id="choose-files" type="button" class="secondary">Choose PDF Files</button>
-            <button id="choose-folder" type="button" class="secondary">Choose Folder</button>
-            <button id="clear-selection" type="button" class="secondary" hidden>Clear</button>
+      <nav class="sidebar-nav">
+        <a href="#dashboard" class="nav-item active" data-target="dashboard" aria-current="page">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-dashboard"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#upload" class="nav-item" data-target="upload">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-upload"/></svg>
+          <span>Upload</span>
+        </a>
+        <a href="#runs" class="nav-item" data-target="runs">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-history"/></svg>
+          <span>Runs</span>
+        </a>
+        <a href="#documents" class="nav-item" data-target="documents">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-file-text"/></svg>
+          <span>Documents</span>
+        </a>
+        <a class="nav-item disabled" aria-disabled="true" title="Coming soon">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-template"/></svg>
+          <span>Templates</span>
+        </a>
+        <a class="nav-item disabled" aria-disabled="true" title="Coming soon">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-settings"/></svg>
+          <span>Settings</span>
+        </a>
+        <a class="nav-item disabled" aria-disabled="true" title="Coming soon">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-key"/></svg>
+          <span>API Keys</span>
+        </a>
+        <a class="nav-item disabled" aria-disabled="true" title="Coming soon">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-chart"/></svg>
+          <span>Usage</span>
+        </a>
+        <a id="support-link" href="#" class="nav-item" data-target="support">
+          <svg class="nav-icon" aria-hidden="true"><use href="#icon-help"/></svg>
+          <span>Support</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button id="user-card" class="user-card" type="button">
+          <div class="user-avatar"><span id="user-initials"></span></div>
+          <div class="user-info">
+            <strong id="user-name"></strong>
+            <span id="user-role"></span>
           </div>
-          <span id="selected-file" class="selected-file">No PDFs selected</span>
-        </div>
-        <button id="upload-button" type="submit" class="extract" disabled>Extract Selected PDFs</button>
-        <p id="upload-message" role="status"></p>
-      </form>
-    </section>
+          <svg class="chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button id="logout-button" class="logout-link" type="button">
+          <svg class="nav-icon" aria-hidden="true" width="16" height="16"><use href="#icon-logout"/></svg>
+          <span>Log out</span>
+        </button>
+      </div>
+    </aside>
 
-    <section class="dashboard-metrics" id="dashboard-metrics" aria-label="Dashboard metrics">
-      <button class="metric-card" data-filter="all" type="button">
-        <div class="metric-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <div class="dashboard-content">
+      <header class="dashboard-header">
+        <div class="dashboard-greeting">
+          <h1>Welcome back, <span id="greeting-name" class="greeting-name"></span></h1>
+          <p>Intelligent extraction. Powerful results.</p>
         </div>
-        <div class="metric-info">
-          <span class="metric-label">Total Uploads</span>
-          <strong class="metric-value" id="metric-total-uploads">0</strong>
+        <div class="dashboard-status" aria-live="polite">
+          <div id="health" class="health"><i></i><span>Checking service</span></div>
+          <div class="upload-limit"><span id="max-upload-size">250</span> MB per PDF</div>
+          <div class="max-upload-badge">Max <span id="max-upload-size-badge">250</span> MB per PDF</div>
+          <button id="notifications" class="notification-button" type="button" aria-label="Notifications">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </button>
         </div>
-        <div class="metric-glow"></div>
-      </button>
-      <button class="metric-card" data-filter="extracted" type="button">
-        <div class="metric-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        <div class="metric-info">
-          <span class="metric-label">Total Extracted</span>
-          <strong class="metric-value" id="metric-total-extracted">0</strong>
-        </div>
-        <div class="metric-glow"></div>
-      </button>
-      <button class="metric-card" data-filter="rejected" type="button">
-        <div class="metric-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <div class="metric-info">
-          <span class="metric-label">Total Rejected</span>
-          <strong class="metric-value" id="metric-total-rejected">0</strong>
-        </div>
-        <div class="metric-glow"></div>
-      </button>
-    </section>
+      </header>
 
-    <section class="workspace" id="workspace">
-      <aside class="run-history" id="run-history">
-        <div class="run-history-header">
-          <div>
-            <p class="eyebrow">RUN HISTORY</p>
-            <h2 id="run-history-title">Extraction runs</h2>
+      <section class="dashboard-top" id="upload">
+        <article class="hero-card">
+          <div class="hero-content">
+            <img id="hero-logo" class="hero-logo" src="/images/logo.png" alt="Brand logo" width="2048" height="768" />
+            <p class="eyebrow">ISOLATED EVIDENCE INGESTION</p>
+            <h2>Turn source PDFs into <em class="brand-gradient">reviewable financial data</em>.</h2>
+            <p class="hero-body">Preserve the original. Transcribe every page. Extract text and tables. Use OCR when needed. Create a traceable source layer before analysis.</p>
           </div>
-          <button id="refresh" class="icon-button" title="Refresh" type="button">↻</button>
-        </div>
-        <div id="run-list" class="run-list"><p class="empty">No extraction runs yet.</p></div>
-      </aside>
-      <section id="review-panel" class="review-panel empty-panel">
-        <div class="empty-state">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <h2>Extraction Output &amp; Review</h2>
-          <p>Select a run from the history to review extracted content.</p>
-          <p class="secondary-text">Extracted text, tables, and metadata will appear here.</p>
+          <div class="hero-art" aria-hidden="true">
+            <svg viewBox="0 0 220 160" fill="none">
+              <path d="M20 120 C70 60 150 60 200 120" stroke="url(#dashWaveGrad)" stroke-width="1.5" fill="none" opacity="0.35"/>
+              <circle cx="170" cy="60" r="35" fill="url(#dashGlowGrad)" opacity="0.25"/>
+              <defs>
+                <linearGradient id="dashWaveGrad" x1="0" y1="0" x2="220" y2="0"><stop stop-color="#2084FF"/><stop offset="1" stop-color="#00D8FF"/></linearGradient>
+                <radialGradient id="dashGlowGrad"><stop stop-color="#2084FF" stop-opacity="0.8"/><stop offset="1" stop-color="#00D8FF" stop-opacity="0"/></radialGradient>
+              </defs>
+            </svg>
+          </div>
+        </article>
+
+        <form id="upload-form" class="upload-card">
+          <input id="pdf-files" name="files" type="file" accept="application/pdf,.pdf" multiple hidden>
+          <input id="pdf-folder" name="folder" type="file" accept="application/pdf,.pdf" webkitdirectory directory multiple hidden>
+          <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Choose PDF files or drop a folder">
+            <svg class="upload-icon" aria-hidden="true" width="40" height="40"><use href="#icon-upload-cloud"/></svg>
+            <strong>Choose files, choose a folder, or drop them here</strong>
+            <small>PDF files only &middot; maximum <span id="max-upload-size-card">250</span> MB per PDF</small>
+            <div class="source-buttons">
+              <button id="choose-files" type="button" class="secondary">
+                <svg class="btn-icon" aria-hidden="true" width="14" height="14"><use href="#icon-file-text"/></svg>
+                Choose PDF Files
+              </button>
+              <button id="choose-folder" type="button" class="secondary">
+                <svg class="btn-icon" aria-hidden="true" width="14" height="14"><use href="#icon-folder"/></svg>
+                Choose Folder
+              </button>
+              <button id="clear-selection" type="button" class="secondary" hidden>Clear</button>
+            </div>
+            <span id="selected-file" class="selected-file">No PDFs selected</span>
+          </div>
+          <button id="upload-button" type="submit" class="extract dashboard-extract" disabled>
+            <svg class="btn-icon" aria-hidden="true" width="16" height="16"><use href="#icon-file-text"/></svg>
+            Extract Selected PDFs
+          </button>
+          <p id="upload-message" role="status"></p>
+        </form>
+      </section>
+
+      <section class="dashboard-metrics" id="dashboard-metrics" aria-label="Dashboard metrics">
+        <button class="metric-card" data-filter="all" type="button">
+          <div class="metric-icon dashboard-metric-icon">
+            <img src="/images/upload-image.png" alt="" class="metric-icon-img" width="104" height="104" />
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Total Uploads</span>
+            <strong class="metric-value" id="metric-total-uploads">0</strong>
+          </div>
+        </button>
+        <button class="metric-card" data-filter="extracted" type="button">
+          <div class="metric-icon dashboard-metric-icon">
+            <img src="/images/doc-image.png" alt="" class="metric-icon-img" width="104" height="104" />
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Total Extracted</span>
+            <strong class="metric-value" id="metric-total-extracted">0</strong>
+          </div>
+        </button>
+        <button class="metric-card" data-filter="rejected" type="button">
+          <div class="metric-icon dashboard-metric-icon">
+            <img src="/images/x-image.png" alt="" class="metric-icon-img" width="104" height="104" />
+          </div>
+          <div class="metric-body">
+            <span class="metric-label">Total Rejected</span>
+            <strong class="metric-value" id="metric-total-rejected">0</strong>
+          </div>
+        </button>
+      </section>
+
+      <section class="dashboard-lower" id="runs">
+        <aside class="run-history" id="run-history">
+          <div class="run-history-header">
+            <p class="eyebrow">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              <span id="run-history-title">RUN HISTORY</span>
+              <span id="run-history-count" class="run-history-count" hidden></span>
+            </p>
+            <div class="run-history-actions">
+              <button id="toggle-run-history" class="icon-button toggle-history" type="button" aria-label="Hide run history" aria-pressed="false" title="Hide run history">
+                <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg>
+              </button>
+              <button id="refresh" class="icon-button dashboard-refresh" title="Refresh" type="button">
+                <svg aria-hidden="true" width="18" height="18"><use href="#icon-refresh"/></svg>
+              </button>
+            </div>
+          </div>
+          <div id="run-list" class="run-list"><p class="empty">No extraction runs yet.</p></div>
+        </aside>
+
+        <section id="review-panel" class="review-panel empty-panel">
+          <div class="empty-state">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <h2>Extraction Output &amp; Review</h2>
+            <p>Select a run from the history to review extracted content.</p>
+            <p class="secondary-text">Extracted text, tables, and metadata will appear here.</p>
+          </div>
+        </section>
+      </section>
+
+      <section class="document-overview" id="documents">
+        <h2 class="section-heading">
+          <svg class="heading-icon" aria-hidden="true" width="18" height="18"><use href="#icon-document"/></svg>
+          Document Overview
+        </h2>
+        <div class="overview-grid">
+          <article class="overview-card" id="overview-recent">
+            <h3>Recent documents</h3>
+            <div class="overview-body"><p class="empty">No documents yet.</p></div>
+          </article>
+          <article class="overview-card" id="overview-extracted">
+            <h3>Processed</h3>
+            <div class="overview-body"><p class="empty">No extracted documents.</p></div>
+          </article>
+          <article class="overview-card" id="overview-rejected">
+            <h3>Failed / Rejected</h3>
+            <div class="overview-body"><p class="empty">No rejected documents.</p></div>
+          </article>
         </div>
       </section>
-    </section>
+    </div>
   </main>
 
   <template id="review-template">
     <header class="review-header">
       <div class="review-title">
-        <p class="eyebrow">REVIEW WORKSPACE</p>
-        <h2 id="run-title"></h2>
-        <p id="run-path"></p>
-        <p id="run-meta"></p>
+        <div class="title-row">
+          <h2 id="run-title"></h2>
+          <span id="run-status" class="run-status"></span>
+        </div>
+        <div class="meta-row">
+          <p id="run-path"></p>
+          <p id="run-meta"></p>
+        </div>
       </div>
       <div class="header-actions">
         <button id="interpret" type="button">Interpret Bank Statement</button>
         <button id="rerun" class="secondary" type="button">Run Again</button>
-        <a id="export" class="button-link">Export Step 1</a>
+        <a id="export" class="button-link" target="_blank" rel="noopener noreferrer">Export Step 1</a>
       </div>
     </header>
-    <div id="status-strip" class="status-strip"></div>
-    <div class="metrics">
-      <article><span>Source format</span><strong id="metric-type"></strong></article>
-      <article><span>Page coverage</span><strong id="metric-classification"></strong></article>
-      <article><span>Transcription</span><strong id="metric-extraction"></strong></article>
-      <article><span>OCR fallback</span><strong id="metric-ocr"></strong></article>
+
+    <div class="review-workspace">
+      <div class="pdf-panel">
+        <div class="pdf-toolbar">
+          <button id="pdf-prev" type="button" class="icon-button" aria-label="Previous page" title="Previous page">â€¹</button>
+          <span class="pdf-page-info">
+            <input id="pdf-page-num" type="number" min="1" value="1" aria-label="Page">
+            <span>/ <span id="pdf-page-count">1</span></span>
+          </span>
+          <button id="pdf-next" type="button" class="icon-button" aria-label="Next page" title="Next page">â€º</button>
+          <span class="pdf-spacer"></span>
+          <button id="pdf-zoom-out" type="button" class="icon-button" aria-label="Zoom out" title="Zoom out">âˆ’</button>
+          <button id="pdf-fit-page" type="button" class="pdf-mode active" title="Fit whole page">Fit Page</button>
+          <button id="pdf-fit-width" type="button" class="pdf-mode" title="Fit page width">Fit Width</button>
+          <button id="pdf-zoom-in" type="button" class="icon-button" aria-label="Zoom in" title="Zoom in">+</button>
+          <span class="pdf-spacer"></span>
+          <a id="open-pdf" class="button-link pdf-open" target="_blank" rel="noopener noreferrer">Open PDF</a>
+        </div>
+        <div class="pdf-viewer-wrap" id="pdf-viewer-wrap">
+          <canvas id="pdf-viewer" aria-label="PDF page"></canvas>
+        </div>
+      </div>
+
+      <div class="analysis-panel">
+        <div class="metrics analysis-metrics" aria-label="Run metrics">
+          <article><span>Source format</span><strong id="metric-type"></strong></article>
+          <article><span>Page coverage</span><strong id="metric-classification"></strong></article>
+          <article><span>Transcription</span><strong id="metric-extraction"></strong></article>
+          <article><span>OCR fallback</span><strong id="metric-ocr"></strong></article>
+        </div>
+
+        <nav class="tabs analysis-tabs" aria-label="Extraction result views">
+          <button class="active" data-tab="compare" type="button">Compare</button>
+          <button data-tab="structured" type="button">Structured</button>
+          <button data-tab="json" type="button">JSON</button>
+          <button data-tab="provenance" type="button">Provenance</button>
+          <button data-tab="raw" type="button">Raw</button>
+        </nav>
+
+        <div class="analysis-body">
+          <div id="tab-compare" class="tab-pane active result-summary"></div>
+          <div id="tab-structured" class="tab-pane result-summary"></div>
+          <div id="tab-json" class="tab-pane"><pre id="json-output"></pre></div>
+          <div id="tab-provenance" class="tab-pane table-wrap"><table><thead><tr><th>Field</th><th>Value</th><th>Page</th><th>Confidence</th><th>Source</th></tr></thead><tbody id="provenance-body"></tbody></table></div>
+          <div id="tab-raw" class="tab-pane"><pre id="raw-output"></pre></div>
+          <section id="interpretation-panel" class="interpretation-panel" hidden></section>
+        </div>
+
+        <div class="review-decision">
+          <div class="decision-header">
+            <p class="eyebrow">PROFESSIONAL REVIEW</p>
+            <div class="decision-title-row">
+              <h3>Record a decision</h3>
+              <p>Decisions are appended to the immutable run; they never rewrite the extracted evidence.</p>
+            </div>
+          </div>
+          <textarea id="review-note" placeholder="Optional review note"></textarea>
+          <div class="decision-buttons">
+            <button data-decision="APPROVED" type="button">Approve</button>
+            <button class="secondary" data-decision="NEEDS_CORRECTION" type="button">Needs correction</button>
+            <button class="danger" data-decision="REJECTED" type="button">Reject</button>
+          </div>
+          <div id="review-history"></div>
+        </div>
+      </div>
     </div>
-    <nav class="tabs" aria-label="Extraction result views">
-      <button class="active" data-tab="compare" type="button">Compare</button>
-      <button data-tab="json" type="button">Normalized JSON</button>
-      <button data-tab="provenance" type="button">Provenance</button>
-      <button data-tab="raw" type="button">Raw extraction</button>
-    </nav>
-    <div id="tab-compare" class="tab-pane active compare-grid">
-      <article class="panel"><div class="panel-title"><h3>Original evidence</h3><a id="open-pdf" target="_blank">Open PDF</a></div><iframe id="pdf-viewer" title="Original PDF"></iframe></article>
-      <article class="panel"><div class="panel-title"><h3>Structured result</h3><span id="schema-version"></span></div><div id="result-summary" class="result-summary"></div></article>
-    </div>
-    <div id="tab-json" class="tab-pane"><pre id="json-output"></pre></div>
-    <div id="tab-provenance" class="tab-pane table-wrap"><table><thead><tr><th>Field</th><th>Value</th><th>Page</th><th>Confidence</th><th>Source</th></tr></thead><tbody id="provenance-body"></tbody></table></div>
-    <div id="tab-raw" class="tab-pane"><pre id="raw-output"></pre></div>
-    <section id="interpretation-panel" class="interpretation-panel" hidden></section>
-    <section class="review-decision">
-      <div><p class="eyebrow">PROFESSIONAL REVIEW</p><h3>Record a decision</h3><p>Decisions are appended to the immutable run; they never rewrite the extracted evidence.</p></div>
-      <textarea id="review-note" placeholder="Optional review note"></textarea>
-      <div class="decision-buttons"><button data-decision="APPROVED" type="button">Approve</button><button class="secondary" data-decision="NEEDS_CORRECTION" type="button">Needs correction</button><button class="danger" data-decision="REJECTED" type="button">Reject</button></div>
-      <div id="review-history"></div>
-    </section>
   </template>
+
+<!-- FELTUS PLAN CONTINUATION START -->
+<script>
+(function () {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const queryPlan =
+        params.get("plan");
+
+    const queryInterval =
+        params.get("interval") || "month";
+
+    const allowedPlans = [
+        "free_trial",
+        "starter",
+        "professional",
+        "business"
+    ];
+
+
+    /*
+     * Preserve selection from the public pricing page.
+     */
+    if (
+        queryPlan &&
+        allowedPlans.includes(queryPlan)
+    ) {
+
+        localStorage.setItem(
+            "feltus_selected_plan",
+            queryPlan
+        );
+
+        localStorage.setItem(
+            "feltus_selected_interval",
+            queryInterval
+        );
+    }
+
+
+    let checkoutInProgress = false;
+
+
+    async function continueSelectedPlan() {
+
+        const plan =
+            localStorage.getItem(
+                "feltus_selected_plan"
+            );
+
+        const interval =
+            localStorage.getItem(
+                "feltus_selected_interval"
+            ) || "month";
+
+        if (
+            !plan ||
+            !allowedPlans.includes(plan)
+        ) {
+            return;
+        }
+
+
+        /*
+         * Wait until the existing FELTUS login succeeds.
+         *
+         * /api/auth/me uses the existing Supabase session cookie.
+         */
+        let authResponse;
+
+        try {
+
+            authResponse = await fetch(
+                "/api/auth/me",
+                {
+                    credentials: "same-origin",
+                    cache: "no-store"
+                }
+            );
+
+        } catch (error) {
+
+            return;
+        }
+
+
+        if (!authResponse.ok) {
+
+            /*
+             * User is still on the login screen.
+             * Do nothing. Existing FELTUS login remains untouched.
+             */
+            return;
+        }
+
+
+        /*
+         * FREE:
+         * Organization already receives the 10-page lifetime
+         * free entitlement from FELTUS.
+         *
+         * No Stripe call.
+         */
+        if (plan === "free_trial") {
+
+            localStorage.removeItem(
+                "feltus_selected_plan"
+            );
+
+            localStorage.removeItem(
+                "feltus_selected_interval"
+            );
+
+            history.replaceState(
+                {},
+                "",
+                "/app"
+            );
+
+            return;
+        }
+
+
+        /*
+         * PAID:
+         * Once authenticated, continue automatically into the
+         * existing Stripe Checkout endpoint.
+         */
+        if (checkoutInProgress) {
+            return;
+        }
+
+        checkoutInProgress = true;
+
+
+        try {
+
+            const response = await fetch(
+                "/api/billing/checkout",
+                {
+                    method: "POST",
+
+                    credentials: "same-origin",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        plan_code: plan,
+                        interval: interval
+                    })
+                }
+            );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.checkout_url
+            ) {
+
+                console.error(
+                    "FELTUS checkout could not start:",
+                    data
+                );
+
+                checkoutInProgress = false;
+
+                return;
+            }
+
+
+            localStorage.removeItem(
+                "feltus_selected_plan"
+            );
+
+            localStorage.removeItem(
+                "feltus_selected_interval"
+            );
+
+
+            window.location.href =
+                data.checkout_url;
+
+
+        } catch (error) {
+
+            console.error(
+                "FELTUS checkout error:",
+                error
+            );
+
+            checkoutInProgress = false;
+        }
+    }
+
+
+    /*
+     * Check immediately for an existing session.
+     * If user is logged out, keep checking while they complete
+     * the normal FELTUS login form.
+     */
+    continueSelectedPlan();
+
+    setInterval(
+        continueSelectedPlan,
+        1200
+    );
+
+})();
+</script>
+<!-- FELTUS PLAN CONTINUATION END -->
+
+
+<!-- FELTUS SIGNUP SCRIPT START -->
+<script>
+(function () {
+
+    const loginForm =
+        document.getElementById(
+            "login-form"
+        );
+
+    const signupForm =
+        document.getElementById(
+            "signup-form"
+        );
+
+    const switchButton =
+        document.getElementById(
+            "auth-switch-button"
+        );
+
+    const switchLabel =
+        document.getElementById(
+            "auth-switch-label"
+        );
+
+    const headerTitle =
+        document.querySelector(
+            ".auth-card-header h2"
+        );
+
+    const headerSubtitle =
+        document.querySelector(
+            ".auth-card-header p"
+        );
+
+    const signupError =
+        document.getElementById(
+            "signup-error"
+        );
+
+    const signupSuccess =
+        document.getElementById(
+            "signup-success"
+        );
+
+    const signupButton =
+        document.getElementById(
+            "signup-button"
+        );
+
+    let mode = "login";
+
+
+    function setMode(nextMode) {
+
+        mode = nextMode;
+
+        const signup =
+            nextMode === "signup";
+
+        loginForm.hidden =
+            signup;
+
+        signupForm.hidden =
+            !signup;
+
+        signupError.hidden =
+            true;
+
+        signupSuccess.hidden =
+            true;
+
+
+        if (signup) {
+
+            headerTitle.textContent =
+                "Create Your Account";
+
+            headerSubtitle.textContent =
+                "Start with 10 free lifetime extraction pages";
+
+            switchLabel.textContent =
+                "Already have an account?";
+
+            switchButton.textContent =
+                "Sign In";
+
+        } else {
+
+            headerTitle.textContent =
+                "Welcome Back";
+
+            headerSubtitle.textContent =
+                "Sign in to your extraction workspace";
+
+            switchLabel.textContent =
+                "New to FELTUS?";
+
+            switchButton.textContent =
+                "Create Account";
+        }
+    }
+
+
+    switchButton.addEventListener(
+        "click",
+        function () {
+
+            setMode(
+                mode === "login"
+                    ? "signup"
+                    : "login"
+            );
+        }
+    );
+
+
+    signupForm.addEventListener(
+        "submit",
+        async function (event) {
+
+            event.preventDefault();
+
+            signupError.hidden = true;
+            signupSuccess.hidden = true;
+
+
+            const fullName =
+                document.getElementById(
+                    "signup-name"
+                ).value.trim();
+
+            const organizationName =
+                document.getElementById(
+                    "signup-organization"
+                ).value.trim();
+
+            const email =
+                document.getElementById(
+                    "signup-email"
+                ).value.trim();
+
+            const password =
+                document.getElementById(
+                    "signup-password"
+                ).value;
+
+            const confirmPassword =
+                document.getElementById(
+                    "signup-confirm-password"
+                ).value;
+
+
+            if (
+                password !==
+                confirmPassword
+            ) {
+
+                signupError.textContent =
+                    "Passwords do not match.";
+
+                signupError.hidden =
+                    false;
+
+                return;
+            }
+
+
+            if (
+                password.length < 8
+            ) {
+
+                signupError.textContent =
+                    "Password must contain at least 8 characters.";
+
+                signupError.hidden =
+                    false;
+
+                return;
+            }
+
+
+            const text =
+                signupButton.querySelector(
+                    ".button-text"
+                );
+
+            const spinner =
+                signupButton.querySelector(
+                    ".spinner"
+                );
+
+            signupButton.disabled =
+                true;
+
+            text.textContent =
+                "Creating Account...";
+
+            spinner.hidden =
+                false;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/auth/register",
+                        {
+                            method: "POST",
+
+                            credentials:
+                                "same-origin",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    full_name:
+                                        fullName,
+
+                                    organization_name:
+                                        organizationName,
+
+                                    email:
+                                        email,
+
+                                    password:
+                                        password
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Account creation failed."
+                    );
+                }
+
+
+                if (
+                    data.requires_confirmation
+                ) {
+
+                    signupSuccess.textContent =
+                        "Your account was created. " +
+                        "Check your email to confirm your account, " +
+                        "then return here and sign in.";
+
+                    signupSuccess.hidden =
+                        false;
+
+                    return;
+                }
+
+
+                /*
+                 * Account and organization now exist.
+                 *
+                 * The selected plan from /pricing remains in
+                 * localStorage.
+                 *
+                 * Existing FELTUS plan-continuation logic will:
+                 *
+                 * FREE -> dashboard
+                 * PAID -> Stripe Checkout
+                 */
+
+                window.location.href =
+                    "/app";
+
+
+            } catch (error) {
+
+                signupError.textContent =
+                    error.message;
+
+                signupError.hidden =
+                    false;
+
+            } finally {
+
+                signupButton.disabled =
+                    false;
+
+                text.textContent =
+                    "Create Account";
+
+                spinner.hidden =
+                    true;
+            }
+        }
+    );
+
+})();
+</script>
+<!-- FELTUS SIGNUP SCRIPT END -->
+
 </body>
 </html>
+

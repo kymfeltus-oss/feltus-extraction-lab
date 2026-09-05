@@ -62,7 +62,7 @@ class PipelineTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         data = Path(self.temp.name)
-        self.settings = Settings(data, data, data / "lab.sqlite3", data / "uploads", 5 * 1024 * 1024, 150, "eng")
+        self.settings = Settings(data, data, data / "lab.sqlite3", data / "uploads", 5 * 1024 * 1024, 150, "eng", None, None)
         self.db = Database(self.settings.database_path)
         self.db.initialize()
         self.service = IngestionService(self.settings, self.db)
@@ -126,6 +126,7 @@ class PipelineTest(unittest.TestCase):
         limited_settings = Settings(
             self.settings.root_dir, self.settings.data_dir, self.settings.database_path,
             self.settings.upload_dir, 100, self.settings.ocr_dpi, self.settings.ocr_language,
+            None, None,
         )
         limited_service = IngestionService(limited_settings, self.db)
         with self.assertRaisesRegex(ValueError, "exceeds"):

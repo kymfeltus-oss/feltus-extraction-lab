@@ -78,30 +78,13 @@ body{
   width: auto;
   max-width: 160px;
   object-fit: contain;
-  background: rgba(255,255,255,0.96);
-  border-radius: 10px;
-  padding: 5px 10px;
-  box-shadow: 0 0 16px rgba(56,189,248,0.15);
   flex: none;
 }
 
-.brand:has(.brand-logo:not([hidden])) .brand-mark,
-.login-card:has(.login-logo:not([hidden])) #login-brand-mark{
+.brand:has(.brand-logo:not([hidden])) .brand-mark{
   display: none;
 }
 
-.login-logo{
-  width: 100%;
-  max-width: 320px;
-  height: auto;
-  object-fit: contain;
-  background: rgba(255,255,255,0.97);
-  border-radius: 20px;
-  padding: 20px 28px;
-  margin: 0 auto 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.35), 0 0 30px rgba(56,189,248,0.15);
-  display: block;
-}
 
 .brand-mark.has-logo{
   border: none;
@@ -177,125 +160,7 @@ body{
   border-color: var(--brand-secondary);
 }
 
-/* Login */
-.login-screen{
-  min-height: calc(100vh - 70px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 28px;
-}
-
-.login-card{
-  width: 100%;
-  max-width: 420px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 48px;
-  box-shadow: var(--card-shadow);
-  text-align: center;
-}
-
-.login-card .brand-mark{
-  margin: 0 auto 24px;
-  width: 80px;
-  height: 80px;
-  font-size: 40px;
-  border-radius: 18px;
-}
-
-.login-card .brand-mark.has-logo{
-  width: 120px;
-  height: 120px;
-  border: none;
-  background: transparent;
-}
-
-.login-card h1{
-  margin: 0 0 8px;
-  font: 500 28px/1.2 'Space Grotesk', sans-serif;
-  color: #fff;
-}
-
-.login-card .tagline{
-  color: var(--muted);
-  margin: 0 0 32px;
-}
-
-.login-card form{
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  text-align: left;
-}
-
-.login-card label{
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.login-card input{
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--bg-surface);
-  color: var(--ink);
-  font-size: 14px;
-  outline: none;
-}
-
-.login-card input:focus{
-  border-color: var(--brand-secondary);
-  box-shadow: 0 0 0 2px rgba(64,187,144,0.2);
-}
-
-.login-card button[type="submit"]{
-  padding: 14px;
-  background: linear-gradient(90deg, var(--brand-secondary, #40bb90), var(--brand-accent, #50d6a6));
-  color: #07172a;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: filter 0.2s, box-shadow 0.2s;
-}
-
-.login-card button[type="submit"]:hover{
-  filter: brightness(1.1);
-  box-shadow: 0 0 18px rgba(64,187,144,0.35);
-}
-
-.login-error{
-  color: var(--red);
-  font-size: 13px;
-  margin: 0;
-}
-
-.login-trust{
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 28px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-  letter-spacing: 0.02em;
-}
-
-.login-trust span{
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(64,187,144,0.18);
-  color: var(--brand-accent);
-  display: grid;
-  place-items: center;
-  font-size: 10px;
-  font-weight: 700;
-}
+/* Login styles are in /static/login.css */
 
 /* App */
 .app-main{
