@@ -51,8 +51,8 @@ app.include_router(signup_router)
 app.mount("/static", StaticFiles(directory=settings.root_dir / "static"), name="static")
 
 images_dir = settings.root_dir / "public" / "images"
-images_dir.mkdir(parents=True, exist_ok=True)
-app.mount("/images", StaticFiles(directory=images_dir), name="images")
+if images_dir.is_dir():
+    app.mount("/images", StaticFiles(directory=images_dir), name="images")
 
 # Store database and auth service in app state for dependency injection
 app.state.database = database
