@@ -75,6 +75,14 @@
     .landing-page {
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .landing-main {
+      min-width: 0;
+      width: 100%;
     }
 
     a {
@@ -91,6 +99,22 @@
     /* Header */
     .topbar {
       flex: none;
+    }
+
+    .topbar .brand {
+      align-items: center;
+    }
+
+    .topbar .brand-logo {
+      height: 56px;
+      max-width: 240px;
+      width: auto;
+      object-fit: contain;
+      margin-right: 0;
+    }
+
+    .topbar .brand-text {
+      display: none;
     }
 
     .topbar-center {
@@ -150,11 +174,13 @@
     /* Hero */
     .hero {
       position: relative;
+      min-width: 0;
       min-height: calc(100vh - 70px);
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 80px 24px 100px;
+      padding: 80px 0 100px;
       overflow: hidden;
     }
 
@@ -210,31 +236,20 @@
     .hero-content {
       position: relative;
       z-index: 1;
+      width: 100%;
+      min-width: 0;
       max-width: 920px;
+      padding: 0 20px;
+      margin: 0 auto;
       text-align: center;
     }
 
     .hero-logo {
-      max-width: 240px;
+      max-width: min(520px, 78vw);
       width: 100%;
       height: auto;
       margin: 0 auto 32px;
       filter: drop-shadow(0 0 24px rgba(56, 189, 248, 0.18));
-    }
-
-    .hero-eyebrow {
-      display: inline-block;
-      margin: 0 0 16px;
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: #22d3ee;
-      border: 1px solid rgba(34, 211, 238, 0.35);
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(34, 211, 238, 0.08);
-      backdrop-filter: blur(8px);
     }
 
     .hero h1 {
@@ -244,22 +259,8 @@
       letter-spacing: -0.02em;
     }
 
-    .hero h1,
-    .hero h1 .hero-line,
-    .hero h1 .accent {
+    .hero h1 {
       white-space: normal;
-      word-break: keep-all;
-      overflow-wrap: normal;
-      word-wrap: normal;
-      hyphens: none;
-    }
-
-    .hero h1 .hero-line {
-      display: block;
-    }
-
-    .hero h1 .hero-line:first-child {
-      margin-bottom: 0.12em;
     }
 
     .hero h1 .accent {
@@ -288,11 +289,13 @@
     }
 
     .hero-sub {
+      width: 100%;
       max-width: 620px;
       margin: 0 auto 36px;
       font-size: clamp(15px, 1.9vw, 19px);
       line-height: 1.65;
       color: var(--muted);
+      text-align: center;
     }
 
     .hero-actions {
@@ -423,11 +426,21 @@
       box-shadow: 0 0 24px rgba(56, 189, 248, 0.14);
     }
 
-    .step-icon img {
+    .step-icon img,
+    .step-icon svg {
       width: 100%;
       height: 100%;
-      object-fit: cover;
       display: block;
+    }
+
+    .step-icon img {
+      object-fit: cover;
+    }
+
+    .step-icon svg {
+      padding: 22px;
+      color: #22d3ee;
+      stroke: #22d3ee;
     }
 
     .step h3 {
@@ -620,7 +633,7 @@
       }
 
       .hero-logo {
-        max-width: 180px;
+        max-width: min(360px, 70vw);
       }
 
       .step {
@@ -644,7 +657,6 @@
 
     <nav class="topbar-center" id="topbar-nav" aria-label="Primary">
       <a class="nav-link" href="#how-it-works">How It Works</a>
-      <a class="nav-link" href="/pricing">Pricing</a>
       <a class="nav-link" href="/app">Sign In</a>
       <a class="topbar-cta" href="/pricing">View Plans & Pricing</a>
     </nav>
@@ -674,10 +686,9 @@
           src="/images/logo.png"
           alt="FELTUS Extraction Lab"
         >
-        <span class="hero-eyebrow">Universal Evidence Extraction</span>
         <h1 id="hero-headline">
-          <span class="hero-line">EXTRACT MORE.</span>
-          <span class="hero-line accent">UNCOVER WHAT <br class="mobile-break">MATTERS.</span>
+          <span>EXTRACT MORE.</span><br>
+          <span class="accent">UNCOVER WHAT <br class="mobile-break">MATTERS.</span>
         </h1>
         <p class="hero-sub">
           Turn your PDFs into reviewable, exportable data. Upload documents,
@@ -725,6 +736,57 @@
             </div>
             <h3>Review & Export</h3>
             <p>Inspect every extraction run, review the output, and export supported results in the format your workflow needs.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="outputs" aria-labelledby="outputs-title">
+      <div class="section-inner">
+        <div class="section-title">
+          <h2 id="outputs-title">Outputs</h2>
+          <p>
+            Review and export extraction results in the formats your workflow needs.
+          </p>
+        </div>
+
+        <div class="steps">
+          <article class="step">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                <path d="M10 13l-2 2 2 2"></path>
+                <path d="M14 17h4"></path>
+              </svg>
+            </div>
+            <h3>JSON Export</h3>
+            <p>Download the full extraction run as a structured JSON file for downstream processing and integrations.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+              </svg>
+            </div>
+            <h3>Original PDF</h3>
+            <p>The uploaded PDF is preserved unchanged and remains available for side-by-side review with the extracted data.</p>
+          </article>
+
+          <article class="step">
+            <div class="step-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path>
+                <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <line x1="10" y1="9" x2="8" y2="9"></line>
+              </svg>
+            </div>
+            <h3>Raw Text</h3>
+            <p>Inspect embedded text, tables, and OCR fallback results for every page in one reviewable workspace.</p>
           </article>
         </div>
       </div>
