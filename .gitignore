@@ -9,3 +9,9 @@ data/
 .env
 extraction-lab/
 .runtime/
+
+# Local backup / temp artifacts
+*.bak
+*.backup
+*backup
+supabase/.temp/

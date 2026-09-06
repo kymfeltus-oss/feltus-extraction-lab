@@ -4,10 +4,11 @@ import json
 import os
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from .config import get_settings
@@ -26,6 +27,27 @@ class RegisterRequest(BaseModel):
     organization_name: str | None = None
     email: str
     password: str
+
+
+class ResendRequest(BaseModel):
+    email: str
+    type: str = "signup"
+
+
+def _build_redirect_to(request: Request) -> str:
+    """
+    Build the confirmation redirect URL from the current request so the
+    email link points to the same host the user is browsing. This avoids
+    broken provider-side SITE_URLs (e.g. a deleted Vercel preview).
+    """
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    forwarded_host = request.headers.get("x-forwarded-host")
+
+    scheme = forwarded_proto or request.base_url.scheme
+    host = forwarded_host or request.headers.get("host") or "localhost:8000"
+
+    redirect_to = f"{scheme}://{host}/app"
+    return redirect_to
 
 
 def _service_key() -> str:
@@ -47,6 +69,7 @@ def _supabase_request(
     *,
     service_role: bool = False,
     prefer: str | None = None,
+    redirect_to: str | None = None,
 ):
     base_url = (settings.supabase_url or "").rstrip("/")
 
@@ -83,8 +106,13 @@ def _supabase_request(
         else None
     )
 
+    url = f"{base_url}{path}"
+    if redirect_to:
+        # Supabase GoTrue reads redirect_to from the query string for signup.
+        url += "?redirect_to=" + urllib.parse.quote(redirect_to, safe="")
+
     request = urllib.request.Request(
-        f"{base_url}{path}",
+        url,
         data=data,
         method=method,
         headers=headers,
@@ -116,7 +144,9 @@ def _supabase_request(
 
         message = "Supabase request failed."
 
+        code = None
         if isinstance(detail, dict):
+            code = detail.get("code") or detail.get("error_code")
             message = (
                 detail.get("msg")
                 or detail.get("message")
@@ -125,9 +155,18 @@ def _supabase_request(
                 or message
             )
 
+        if code and code not in message:
+            message = f"{message} ({code})"
+
+        headers = {}
+        retry_after = exc.headers.get("Retry-After") if exc.headers else None
+        if retry_after:
+            headers["Retry-After"] = retry_after
+
         raise HTTPException(
             status_code=exc.code,
             detail=message,
+            headers=headers,
         ) from None
 
 
@@ -187,6 +226,7 @@ def _delete_organization(
 def register(
     payload: RegisterRequest,
     response: Response,
+    request: Request,
 ) -> dict:
 
     full_name = payload.full_name.strip()
@@ -220,6 +260,8 @@ def register(
     # CREATE SUPABASE AUTH USER
     # --------------------------------------------------------
 
+    redirect_to = _build_redirect_to(request)
+
     signup = _supabase_request(
         "POST",
         "/auth/v1/signup",
@@ -230,6 +272,7 @@ def register(
                 "full_name": full_name,
             },
         },
+        redirect_to=redirect_to,
     )
 
     user = signup.get("user") or {}
@@ -237,10 +280,12 @@ def register(
     user_id = user.get("id")
 
     if not user_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Supabase did not create the user account.",
-        )
+        detail = "Supabase did not create the user account."
+        if isinstance(signup, dict):
+            safe = {k: v for k, v in signup.items() if k in ("msg", "message", "error_description", "error", "code")}
+            if safe:
+                detail = f"{detail} Supabase response: {json.dumps(safe)}"
+        raise HTTPException(status_code=400, detail=detail)
 
     organization_id = None
 
@@ -421,4 +466,45 @@ def register(
             "page_limit": 10,
             "usage_period": "lifetime",
         },
+    }
+
+
+@router.post("/resend")
+def resend_confirmation(
+    payload: ResendRequest,
+    request: Request,
+) -> dict:
+    """
+    Resend a signup confirmation email through Supabase. The request is
+    rate-limited by Supabase; this endpoint passes through the provider's
+    429 response without retrying or masking it.
+    """
+    email = payload.email.strip().lower()
+
+    if "@" not in email:
+        raise HTTPException(
+            status_code=400,
+            detail="Please enter a valid email address.",
+        )
+
+    body: dict = {
+        "type": payload.type,
+        "email": email,
+    }
+
+    redirect_to = _build_redirect_to(request)
+    if redirect_to:
+        body["options"] = {
+            "email_redirect_to": redirect_to,
+        }
+
+    _supabase_request(
+        "POST",
+        "/auth/v1/resend",
+        body,
+    )
+
+    return {
+        "sent": True,
+        "email": email,
     }

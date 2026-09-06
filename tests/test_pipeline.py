@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import os
 import shutil
 import tempfile
 import unittest
@@ -14,6 +15,15 @@ from app.config import Settings
 from app.db import Database
 from app.service import IngestionService
 from app.interpreter import interpret_bank_statement
+
+
+def _tesseract_available() -> bool:
+    if shutil.which("tesseract"):
+        return True
+    if os.name == "nt":
+        candidate = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Tesseract-OCR" / "tesseract.exe"
+        return candidate.is_file()
+    return False
 
 
 def make_pdf(lines: list[str]) -> bytes:
@@ -40,10 +50,25 @@ def make_multipage_pdf(pages: list[list[str]]) -> bytes:
     return buffer.getvalue()
 
 
+def _get_test_font():
+    paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        r"C:\Windows\Fonts\arial.ttf",
+        r"C:\Windows\Fonts\calibri.ttf",
+        r"C:\Windows\Fonts\segoeui.ttf",
+    ]
+    for path in paths:
+        try:
+            return ImageFont.truetype(path, 40)
+        except OSError:
+            continue
+    return ImageFont.load_default()
+
+
 def make_scanned_pdf(lines: list[str]) -> bytes:
     image = Image.new("RGB", (1700, 2200), "white")
     draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
+    font = _get_test_font()
     y = 150
     for line in lines:
         draw.text((140, y), line, fill="black", font=font)
@@ -157,7 +182,7 @@ class PipelineTest(unittest.TestCase):
         self.assertFalse(any("balance" in warning.lower() for warning in run["warnings"]))
         self.assertEqual(run["status"], "VALIDATED")
 
-    @unittest.skipUnless(shutil.which("tesseract"), "Tesseract is not installed")
+    @unittest.skipUnless(_tesseract_available(), "Tesseract is not installed")
     def test_scanned_pdf_uses_real_ocr_fallback(self) -> None:
         payload = make_scanned_pdf([
             "BANK STATEMENT", "Account ending 9911", "Statement Period 03/01/2026 through 03/31/2026",

@@ -3,8 +3,11 @@ $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ProjectRoot
 
 if (-not (Get-Command tesseract -ErrorAction SilentlyContinue)) {
-    $CommonTesseract = "C:\Program Files\Tesseract-OCR\tesseract.exe"
-    if (-not (Test-Path $CommonTesseract)) {
+    $CommonTesseractDir = "C:\Program Files\Tesseract-OCR"
+    $CommonTesseract = "$CommonTesseractDir\tesseract.exe"
+    if (Test-Path $CommonTesseract) {
+        $env:Path = "$CommonTesseractDir;$($env:Path)"
+    } else {
         Write-Warning "Tesseract OCR was not found. Text-based pages will work, but scanned pages require OCR. Run .\install-ocr-windows.ps1 if the page report says OCR is unavailable."
     }
 }

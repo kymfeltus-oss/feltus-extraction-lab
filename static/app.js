@@ -68,6 +68,7 @@ function setAuthenticated(value, me = null) {
   const errorEl = $("#login-error");
   if (errorEl) errorEl.hidden = true;
   if (!value) {
+    clearSessionToken();
     resetLoginButton();
     const emailInput = $("#login-email");
     const passwordInput = $("#login-password");
@@ -124,6 +125,7 @@ async function login(event) {
     }
     return;
   }
+  clearSessionToken();
   setLoginLoading(true);
   try {
     const result = await api("/api/auth/login", {
@@ -146,6 +148,7 @@ async function logout() {
   try {
     await api("/api/auth/logout", {method: "POST"});
   } catch {}
+  clearSessionToken();
   state.runs = [];
   state.current = null;
   state.selected = [];
@@ -159,8 +162,28 @@ async function logout() {
   setAuthenticated(false);
 }
 
+const AUTH_TOKEN_KEY = "feltus_access_token";
+
+function getSessionToken() {
+  try { return sessionStorage.getItem(AUTH_TOKEN_KEY); } catch { return null; }
+}
+
+function setSessionToken(token) {
+  try { if (token) sessionStorage.setItem(AUTH_TOKEN_KEY, token); } catch {}
+}
+
+function clearSessionToken() {
+  try { sessionStorage.removeItem(AUTH_TOKEN_KEY); } catch {}
+}
+
 async function api(url, options) {
-  const config = {credentials: "include", ...options};
+  const token = getSessionToken();
+  const baseHeaders = token ? {Authorization: `Bearer ${token}`} : {};
+  const config = {
+    credentials: "include",
+    ...options,
+    headers: {...baseHeaders, ...(options?.headers || {})}
+  };
   const response = await fetch(url, config);
   if (!response.ok) {
     let detail = "Request failed";
@@ -168,6 +191,47 @@ async function api(url, options) {
     throw new Error(detail);
   }
   return response.json();
+}
+
+async function handleAuthHash() {
+  const hash = window.location.hash;
+  if (!hash || hash.length < 2) return;
+
+  const params = new URLSearchParams(hash.substring(1));
+  const accessToken = params.get("access_token");
+  const type = params.get("type") || "";
+
+  if (!accessToken || !["signup", "magiclink", "recovery"].includes(type)) return;
+
+  const refreshToken = params.get("refresh_token") || "";
+  const expiresIn = parseInt(params.get("expires_in") || "3600", 10) || 3600;
+
+  setSessionToken(accessToken);
+
+  try {
+    const result = await api("/api/auth/confirm", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        expires_in: expiresIn
+      })
+    });
+
+    const url = new URL(window.location.href);
+    url.hash = "";
+    history.replaceState({}, "", url);
+
+    setAuthenticated(true, result);
+  } catch (error) {
+    console.error("FELTUS confirmation failed:", error);
+    clearSessionToken();
+
+    const url = new URL(window.location.href);
+    url.hash = "";
+    history.replaceState({}, "", url);
+  }
 }
 
 function pct(value) { return `${Math.round((value || 0) * 100)}%`; }
@@ -780,4 +844,4 @@ if (passwordInput && passwordToggle) {
 }
 
 checkHealth();
-checkAuth();
+handleAuthHash().then(() => checkAuth()).catch(() => checkAuth());

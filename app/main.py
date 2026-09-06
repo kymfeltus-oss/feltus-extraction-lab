@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from .auth import (
-    SupabaseAuth, LoginRequest, SwitchOrganizationRequest, get_current_user,
+    SupabaseAuth, LoginRequest, SwitchOrganizationRequest, ConfirmRequest, get_current_user,
     get_optional_user, AuthContext, _get_token
 )
 from .branding import APP_NAME, APP_TITLE, APP_VERSION, MAX_UPLOAD_MB
@@ -126,6 +126,54 @@ def logout(request: Request, response: Response, auth_context: AuthContext = Dep
     response.delete_cookie("refresh_token")
     response.delete_cookie("active_organization_id")
     return {"message": "Logged out successfully"}
+
+
+@app.post("/api/auth/confirm")
+def confirm(
+    request: Request,
+    response: Response,
+    confirm: ConfirmRequest,
+) -> dict:
+    """
+    Exchange a Supabase access token (from an email-confirmation or
+    magic-link redirect) for a local session cookie. The token is validated
+    by calling Supabase /auth/v1/user, so the backend continues to enforce
+    Supabase JWT validation without storing any secret material.
+    """
+    supabase_auth = request.app.state.supabase_auth
+    auth_context = supabase_auth.get_auth_context(confirm.access_token)
+    access_token = confirm.access_token
+    refresh_token = confirm.refresh_token or ""
+    expires_in = confirm.expires_in or 3600
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,  # Set to True in production with HTTPS
+        samesite="lax",
+        max_age=expires_in
+    )
+    if refresh_token:
+        response.set_cookie(
+            key="refresh_token",
+            value=refresh_token,
+            httponly=True,
+            secure=False,
+            samesite="lax",
+            max_age=expires_in * 24 * 7
+        )
+    response.set_cookie(
+        key="active_organization_id",
+        value=auth_context.organization_id,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=86400 * 30
+    )
+
+    organizations = supabase_auth.get_organizations(auth_context.user_id, access_token)
+    return _auth_response(auth_context, organizations)
 
 
 @app.get("/api/auth/me")

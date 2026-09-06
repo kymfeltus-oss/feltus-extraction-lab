@@ -4,6 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FELTUS Plans</title>
+    <script>
+        /*
+         * Keep local sessions on one canonical origin. 127.0.0.1 and
+         * localhost are different cookie hosts, so redirect 127.0.0.1
+         * to localhost before any session logic runs.
+         */
+        (function () {
+            if (window.location.hostname === "127.0.0.1") {
+                var url = new URL(window.location.href);
+                url.hostname = "localhost";
+                window.location.replace(url.toString());
+                return;
+            }
+            /*
+             * If Supabase redirects the confirmation email to the site root
+             * (e.g. http://localhost:8000/#access_token=...&type=signup), carry
+             * the token to the app page where handleAuthHash() can exchange it.
+             */
+            var hash = window.location.hash;
+            if (hash && hash.length > 1) {
+                var params = new URLSearchParams(hash.substring(1));
+                var accessToken = params.get("access_token");
+                var type = params.get("type") || "";
+
+                if (
+                    accessToken &&
+                    ["signup", "magiclink", "recovery"].indexOf(type) !== -1
+                ) {
+                    window.location.replace("/app" + hash);
+                }
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +50,7 @@
         body {
             margin: 0;
             min-height: 100%;
+            overflow-x: hidden;
         }
 
         body {
@@ -42,14 +76,16 @@
         .page {
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
+            padding-top: clamp(12px, 2vh, 28px);
+            padding-bottom: clamp(12px, 2vh, 28px);
         }
 
         .bg-box {
             position: relative;
             width: 100%;
-            max-width: calc(100vh * 1.7778);
+            max-width: min(100vw, calc(100vh * 1.7778));
             line-height: 0;
         }
 
@@ -62,8 +98,8 @@
         /* Cards live only inside the large empty center of the artwork. */
         .overlay {
             position: absolute;
-            top: 34%;
-            bottom: 21%;
+            top: 38%;
+            bottom: 20%;
             left: 18%;
             right: 18%;
             display: flex;
@@ -76,7 +112,9 @@
             grid-template-columns: repeat(4, 1fr);
             gap: clamp(10px, 1.2vw, 22px);
             width: 100%;
+            max-width: 1200px;
             height: 100%;
+            margin: 0 auto;
             line-height: 1.4;
         }
 
@@ -93,6 +131,21 @@
             -webkit-backdrop-filter: blur(14px);
             box-shadow: 0 10px 30px rgba(2, 8, 23, 0.5),
                         inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        border-color 0.35s ease,
+                        box-shadow 0.35s ease,
+                        background 0.35s ease;
+            will-change: transform;
+        }
+
+        .plan:hover {
+            transform: translateY(-8px);
+            border-color: rgba(34, 211, 238, 0.55);
+            background: linear-gradient(165deg, rgba(16, 40, 78, 0.86), rgba(8, 20, 42, 0.74));
+            box-shadow: 0 18px 46px rgba(2, 8, 23, 0.55),
+                        0 0 30px rgba(34, 211, 238, 0.25),
+                        0 0 60px rgba(32, 132, 255, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
 
         .plan.featured {
@@ -102,6 +155,16 @@
                         0 0 60px rgba(192, 38, 211, 0.22),
                         0 10px 30px rgba(2, 8, 23, 0.5),
                         inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .plan.featured:hover {
+            transform: translateY(-10px);
+            border-color: rgba(192, 38, 211, 0.85);
+            background: linear-gradient(165deg, rgba(20, 50, 95, 0.9), rgba(12, 24, 55, 0.78));
+            box-shadow: 0 22px 54px rgba(2, 8, 23, 0.6),
+                        0 0 45px rgba(34, 211, 238, 0.45),
+                        0 0 80px rgba(192, 38, 211, 0.35),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
 
         .badge {
@@ -221,9 +284,9 @@
             box-shadow: 0 8px 26px rgba(192, 38, 211, 0.55);
         }
 
-        /* Below ~1150px the image's center is too short for live cards,
+        /* Below 1200px the image's center is too short for live cards,
            so the artwork becomes a full-width banner and cards flow beneath. */
-        @media (max-width: 1150px) {
+        @media (max-width: 1200px) {
             .page {
                 display: block;
                 min-height: 0;
@@ -317,7 +380,7 @@
                         <li>Access core features</li>
                     </ul>
 
-                    <button type="button" onclick="startFree()">
+                    <button type="button" onclick="choosePlan('free_trial')">
                         Get Started Free
                     </button>
                 </div>
@@ -337,7 +400,7 @@
                         <li>Email support</li>
                     </ul>
 
-                    <button type="button" onclick="checkout('starter')">
+                    <button type="button" onclick="choosePlan('starter', 'month')">
                         Choose Starter
                     </button>
                 </div>
@@ -358,7 +421,7 @@
                         <li>Priority support</li>
                     </ul>
 
-                    <button type="button" onclick="checkout('professional')">
+                    <button type="button" onclick="choosePlan('professional', 'month')">
                         Choose Professional
                     </button>
                 </div>
@@ -378,7 +441,7 @@
                         <li>Custom solutions</li>
                     </ul>
 
-                    <button type="button" onclick="checkout('business')">
+                    <button type="button" onclick="choosePlan('business', 'month')">
                         Choose Business
                     </button>
                 </div>
@@ -394,78 +457,40 @@
 
 <script>
 
-function startFree() {
+function choosePlan(plan, interval) {
+
     /*
-     * The free entitlement is created automatically when the user
-     * signs up. The /app page will continue the free_trial plan and
-     * land them on the dashboard after login/registration.
+     * Store the selected plan so it survives the login or
+     * account-creation step. The /app page will then continue
+     * Free plans directly to the dashboard, or paid plans through
+     * Stripe Checkout once the user is authenticated.
      */
-    window.location.href = "/app?plan=free_trial";
-}
 
-function checkoutFallbackUrl(plan) {
-    return "/app?plan=" + encodeURIComponent(plan) + "&interval=month";
-}
+    localStorage.setItem(
+        "feltus_selected_plan",
+        plan
+    );
 
-async function checkout(plan) {
-
-    const button = event.currentTarget;
-
-    button.disabled = true;
-    button.textContent = "Opening checkout...";
-
-    try {
-
-        const response = await fetch(
-            "/api/billing/checkout",
-            {
-                method: "POST",
-                credentials: "same-origin",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    plan_code: plan,
-                    interval: "month"
-                })
-            }
+    if (interval) {
+        localStorage.setItem(
+            "feltus_selected_interval",
+            interval
         );
-
-        const data = await response.json();
-
-        /*
-         * Authenticated users are sent straight to Stripe.
-         */
-        if (response.ok && data.checkout_url) {
-            window.location.href = data.checkout_url;
-            return;
-        }
-
-
-        /*
-         * If the user is not yet logged in (401/403), fall back to
-         * the app's plan-continuation flow: sign up / log in, then
-         * the app posts to /api/billing/checkout and continues to
-         * Stripe automatically.
-         */
-        if (response.status === 401 || response.status === 403) {
-            window.location.href = checkoutFallbackUrl(plan);
-            return;
-        }
-
-        throw new Error(
-            data.detail || "Checkout failed."
+    } else {
+        localStorage.removeItem(
+            "feltus_selected_interval"
         );
-
-    } catch (error) {
-
-        /*
-         * Network errors or other failures should not leave the user
-         * stranded; send them to the app so the plan can continue
-         * after login.
-         */
-        window.location.href = checkoutFallbackUrl(plan);
     }
+
+    const params = ["plan=" + encodeURIComponent(plan)];
+
+    if (interval) {
+        params.push(
+            "interval=" + encodeURIComponent(interval)
+        );
+    }
+
+    window.location.href = "/app?" + params.join("&");
 }
 
 </script>

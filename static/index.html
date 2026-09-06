@@ -4,6 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FELTUS Extraction Lab</title>
+  <script>
+    /*
+     * Keep the local session on one canonical origin. The Uvicorn server
+     * binds to 127.0.0.1, but browsers treat 127.0.0.1 and localhost as
+     * different hosts, so a cookie set on one is not sent to the other.
+     * Redirect 127.0.0.1 to localhost so session cookies stay valid.
+     */
+    (function () {
+      if (window.location.hostname === "127.0.0.1") {
+        const url = new URL(window.location.href);
+        url.hostname = "localhost";
+        window.location.replace(url);
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -272,6 +287,25 @@
         id="signup-success"
         class="feltus-signup-success"
         hidden>
+    </p>
+
+
+    <p
+        id="resend-section"
+        class="feltus-signup-success"
+        hidden>
+        <button
+            type="button"
+            id="resend-button"
+            class="auth-submit"
+            disabled>
+            Resend confirmation email
+        </button>
+        <span
+            id="resend-status"
+            class="auth-error"
+            hidden>
+        </span>
     </p>
 
 
@@ -887,6 +921,9 @@
         );
 
     let mode = "login";
+    let signupSubmitted = false;
+    let signupLocked = false;
+    let resendInProgress = false;
 
 
     function setMode(nextMode) {
@@ -1038,9 +1075,11 @@
                 false;
 
 
+            let response;
+
             try {
 
-                const response =
+                response =
                     await fetch(
                         "/api/auth/register",
                         {
@@ -1097,6 +1136,29 @@
                     signupSuccess.hidden =
                         false;
 
+                    signupSubmitted =
+                        true;
+
+                    const resendSection =
+                        document.getElementById(
+                            "resend-section"
+                        );
+
+                    const resendButton =
+                        document.getElementById(
+                            "resend-button"
+                        );
+
+                    if (resendSection) {
+                        resendSection.hidden =
+                            false;
+                    }
+
+                    if (resendButton) {
+                        resendButton.disabled =
+                            false;
+                    }
+
                     return;
                 }
 
@@ -1125,10 +1187,54 @@
                 signupError.hidden =
                     false;
 
+                if (
+                    response &&
+                    response.status === 429 ||
+                    (error.message &&
+                        error.message.toLowerCase().indexOf("rate limit") !== -1)
+                ) {
+                    signupLocked =
+                        true;
+
+                    const retryAfter =
+                        response
+                            ? response.headers.get("Retry-After")
+                            : null;
+
+                    const waitSeconds =
+                        retryAfter
+                            ? parseInt(retryAfter, 10)
+                            : 60;
+
+                    const safeWait =
+                        isNaN(waitSeconds) || waitSeconds < 1
+                            ? 60
+                            : waitSeconds;
+
+                    text.textContent =
+                        `Wait ${safeWait}s...`;
+
+                    setTimeout(
+                        function () {
+                            signupLocked =
+                                false;
+
+                            signupButton.disabled =
+                                false;
+
+                            text.textContent =
+                                "Create Account";
+                        },
+                        safeWait * 1000
+                    );
+                }
+
             } finally {
 
-                signupButton.disabled =
-                    false;
+                if (!signupLocked) {
+                    signupButton.disabled =
+                        false;
+                }
 
                 text.textContent =
                     "Create Account";
@@ -1138,6 +1244,171 @@
             }
         }
     );
+
+
+    const resendButton =
+        document.getElementById(
+            "resend-button"
+        );
+
+    const resendStatus =
+        document.getElementById(
+            "resend-status"
+        );
+
+    if (resendButton) {
+
+        resendButton.addEventListener(
+            "click",
+            async function () {
+
+                if (
+                    resendInProgress ||
+                    signupLocked
+                ) {
+                    return;
+                }
+
+                resendInProgress =
+                    true;
+
+                resendButton.disabled =
+                    true;
+
+                resendButton.textContent =
+                    "Sending...";
+
+                if (resendStatus) {
+                    resendStatus.hidden =
+                        true;
+                }
+
+
+                const emailInput =
+                    document.getElementById(
+                        "signup-email"
+                    );
+
+                const email =
+                    emailInput
+                        ? emailInput.value.trim().toLowerCase()
+                        : "";
+
+
+                let resendResponse;
+
+                try {
+
+                    resendResponse =
+                        await fetch(
+                            "/api/auth/resend",
+                            {
+                                method: "POST",
+
+                                credentials:
+                                    "same-origin",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        email: email,
+                                        type: "signup"
+                                    })
+                            }
+                        );
+
+
+                    const resendData =
+                        await resendResponse.json();
+
+
+                    if (!resendResponse.ok) {
+
+                        throw new Error(
+                            resendData.detail ||
+                            "Could not resend email."
+                        );
+                    }
+
+
+                    resendButton.textContent =
+                        "Confirmation email sent";
+
+                    if (resendStatus) {
+
+                        resendStatus.textContent =
+                            "Please check your inbox and spam folder.";
+
+                        resendStatus.hidden =
+                            false;
+                    }
+
+
+                } catch (error) {
+
+                    if (resendStatus) {
+
+                        resendStatus.textContent =
+                            error.message;
+
+                        resendStatus.hidden =
+                            false;
+                    }
+
+                    resendInProgress =
+                        false;
+
+                    const retryAfter =
+                        resendResponse
+                            ? resendResponse.headers.get("Retry-After")
+                            : null;
+
+                    const waitSeconds =
+                        retryAfter
+                            ? parseInt(retryAfter, 10)
+                            : 60;
+
+                    const safeWait =
+                        isNaN(waitSeconds) || waitSeconds < 1
+                            ? 60
+                            : waitSeconds;
+
+                    if (
+                        error.message &&
+                        error.message.toLowerCase().indexOf("rate limit") !== -1
+                    ) {
+                        resendButton.textContent =
+                            `Wait ${safeWait}s...`;
+
+                        resendButton.disabled =
+                            true;
+
+                        setTimeout(
+                            function () {
+                                resendButton.disabled =
+                                    false;
+
+                                resendButton.textContent =
+                                    "Resend confirmation email";
+                            },
+                            safeWait * 1000
+                        );
+                    } else {
+                        resendButton.textContent =
+                            "Resend confirmation email";
+
+                        resendButton.disabled =
+                            false;
+                    }
+                }
+            }
+        );
+    }
+
 
 })();
 </script>

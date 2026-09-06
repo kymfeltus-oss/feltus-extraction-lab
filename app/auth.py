@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import secrets
 from datetime import datetime, timezone, timedelta
@@ -28,6 +29,8 @@ ph = PasswordHasher(
     salt_len=16
 )
 
+logger = logging.getLogger("feltus.auth")
+
 
 class AuthContext(BaseModel):
     user_id: str
@@ -46,6 +49,12 @@ class LoginRequest(BaseModel):
 
 class SwitchOrganizationRequest(BaseModel):
     organization_id: str
+
+
+class ConfirmRequest(BaseModel):
+    access_token: str
+    refresh_token: str | None = None
+    expires_in: int | None = 3600
 
 
 class AuthService:
@@ -262,10 +271,17 @@ def get_current_user(request: Request) -> AuthContext:
     if not supabase_auth:
         raise HTTPException(status_code=401, detail="Authentication not configured")
     access_token = _get_token(request)
+    has_header = bool(request.headers.get("authorization"))
+    has_cookie = bool(request.cookies.get("access_token"))
     if not access_token:
+        logger.warning("Auth request rejected: no token (header=%s, cookie=%s)", has_header, has_cookie)
         raise HTTPException(status_code=401, detail="Authentication required")
     active_org_id = request.cookies.get("active_organization_id")
-    return supabase_auth.get_auth_context(access_token, active_org_id)
+    try:
+        return supabase_auth.get_auth_context(access_token, active_org_id)
+    except HTTPException as exc:
+        logger.warning("Auth token validation failed: status=%s (header=%s, cookie=%s)", exc.status_code, has_header, has_cookie)
+        raise
 
 
 def get_optional_user(request: Request) -> Optional[AuthContext]:
