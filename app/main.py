@@ -236,6 +236,12 @@ def index() -> FileResponse:
     return FileResponse(settings.root_dir / "static" / "index.html")
 
 @app.get("/", response_class=HTMLResponse)
+def landing() -> FileResponse:
+    return FileResponse(
+        settings.root_dir / "static" / "landing.html"
+    )
+
+
 @app.get("/pricing", response_class=HTMLResponse)
 def pricing() -> FileResponse:
     return FileResponse(
