@@ -1,0 +1,25 @@
+# Python environment
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local data and runtime artifacts (Vercel uses /tmp/data at runtime)
+data/
+extraction-lab/
+.runtime/
+
+# Tests and local backups
+tests/
+*.bak
+*.backup
+*backup
+supabase/.temp/
+
+# Secrets and env
+.env
+.env.example
+
+# Vercel / git local state
+.vercel/
+.git/

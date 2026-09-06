@@ -49,7 +49,10 @@ app = FastAPI(title=APP_TITLE, version=APP_VERSION)
 app.include_router(billing_router)
 app.include_router(signup_router)
 app.mount("/static", StaticFiles(directory=settings.root_dir / "static"), name="static")
-app.mount("/images", StaticFiles(directory=settings.root_dir / "public" / "images"), name="images")
+
+images_dir = settings.root_dir / "public" / "images"
+images_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/images", StaticFiles(directory=images_dir), name="images")
 
 # Store database and auth service in app state for dependency injection
 app.state.database = database
