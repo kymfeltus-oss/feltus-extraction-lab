@@ -31,6 +31,12 @@ from .signup_routes import router as signup_router
 
 settings = get_settings()
 settings.upload_dir.mkdir(parents=True, exist_ok=True)
+
+
+def _is_https(request: Request) -> bool:
+    """Use the forwarded protocol (Vercel, proxy) or the request scheme."""
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    return (forwarded_proto or request.base_url.scheme) == "https"
 database = Database(settings.database_path)
 database.initialize()
 service = IngestionService(settings, database)
@@ -97,7 +103,7 @@ def login(request: Request, response: Response, login: LoginRequest) -> dict:
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
+        secure=_is_https(request),
         samesite="lax",
         max_age=expires_in
     )
@@ -106,7 +112,7 @@ def login(request: Request, response: Response, login: LoginRequest) -> dict:
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,
+            secure=_is_https(request),
             samesite="lax",
             max_age=expires_in * 24 * 7
         )
@@ -122,9 +128,10 @@ def logout(request: Request, response: Response, auth_context: AuthContext = Dep
     if access_token:
         request.app.state.supabase_auth.sign_out(access_token)
 
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("active_organization_id")
+    secure = _is_https(request)
+    response.delete_cookie("access_token", secure=secure)
+    response.delete_cookie("refresh_token", secure=secure)
+    response.delete_cookie("active_organization_id", secure=secure)
     return {"message": "Logged out successfully"}
 
 
@@ -150,7 +157,7 @@ def confirm(
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,  # Set to True in production with HTTPS
+        secure=_is_https(request),
         samesite="lax",
         max_age=expires_in
     )
@@ -159,7 +166,7 @@ def confirm(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=False,
+            secure=_is_https(request),
             samesite="lax",
             max_age=expires_in * 24 * 7
         )
@@ -167,7 +174,7 @@ def confirm(
         key="active_organization_id",
         value=auth_context.organization_id,
         httponly=True,
-        secure=False,
+        secure=_is_https(request),
         samesite="lax",
         max_age=86400 * 30
     )
@@ -206,7 +213,7 @@ def switch_organization(
         key="active_organization_id",
         value=target_org["id"],
         httponly=True,
-        secure=False,
+        secure=_is_https(request),
         samesite="lax",
         max_age=86400 * 30
     )

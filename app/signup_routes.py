@@ -50,6 +50,12 @@ def _build_redirect_to(request: Request) -> str:
     return redirect_to
 
 
+def _is_https(request: Request) -> bool:
+    """Use the forwarded protocol (Vercel, proxy) or the request scheme."""
+    forwarded_proto = request.headers.get("x-forwarded-proto")
+    return (forwarded_proto or request.base_url.scheme) == "https"
+
+
 def _service_key() -> str:
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
@@ -415,7 +421,7 @@ def register(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=False,
+            secure=_is_https(request),
             samesite="lax",
             max_age=int(expires_in),
         )
@@ -426,7 +432,7 @@ def register(
                 key="refresh_token",
                 value=refresh_token,
                 httponly=True,
-                secure=False,
+                secure=_is_https(request),
                 samesite="lax",
                 max_age=86400 * 30,
             )
@@ -435,7 +441,7 @@ def register(
             key="active_organization_id",
             value=organization_id,
             httponly=True,
-            secure=False,
+            secure=_is_https(request),
             samesite="lax",
             max_age=86400 * 30,
         )
