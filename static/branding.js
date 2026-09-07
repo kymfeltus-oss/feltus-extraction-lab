@@ -30,6 +30,8 @@ function applyBranding(brand) {
   const brandLogo = document.getElementById("brand-logo");
   const brandMarkSidebar = document.getElementById("brand-mark-sidebar");
   const brandLogoSidebar = document.getElementById("brand-logo-sidebar");
+  const brandMarkMobile = document.getElementById("brand-mark-mobile");
+  const brandLogoMobile = document.getElementById("brand-logo-mobile");
   const loginBrandMark = document.getElementById("login-brand-mark");
   const loginAppName = document.getElementById("login-app-name");
   const loginLogo = document.getElementById("login-logo");
@@ -49,18 +51,22 @@ function applyBranding(brand) {
   if (brand.logoUrl) {
     if (brandLogo) { brandLogo.src = brand.logoUrl; brandLogo.hidden = false; }
     if (brandLogoSidebar) { brandLogoSidebar.src = brand.logoUrl; brandLogoSidebar.hidden = false; }
+    if (brandLogoMobile) { brandLogoMobile.src = brand.logoUrl; brandLogoMobile.hidden = false; }
     if (loginLogo) { loginLogo.src = brand.logoUrl; loginLogo.hidden = false; }
     if (heroLogo) { heroLogo.src = brand.logoUrl; heroLogo.hidden = false; }
     if (brandMark) brandMark.hidden = true;
     if (brandMarkSidebar) brandMarkSidebar.hidden = true;
+    if (brandMarkMobile) brandMarkMobile.hidden = true;
     if (loginBrandMark) loginBrandMark.hidden = true;
   } else {
     if (brandLogo) brandLogo.hidden = true;
     if (brandLogoSidebar) brandLogoSidebar.hidden = true;
+    if (brandLogoMobile) brandLogoMobile.hidden = true;
     if (loginLogo) loginLogo.hidden = true;
     if (heroLogo) heroLogo.hidden = true;
     if (brandMark) brandMark.hidden = false;
     if (brandMarkSidebar) brandMarkSidebar.hidden = false;
+    if (brandMarkMobile) brandMarkMobile.hidden = false;
     if (loginBrandMark) loginBrandMark.hidden = false;
   }
 
@@ -94,6 +100,7 @@ function applyBranding(brand) {
   const loginSupport = document.getElementById("login-support");
   const loginSupportWrap = document.getElementById("login-support-wrap");
   const dashboardSupport = document.getElementById("support-link");
+  const mobileDashboardSupport = document.getElementById("mobile-support-link");
   if (brand.supportEmail) {
     if (loginSupport) {
       loginSupport.href = `mailto:${brand.supportEmail}`;
@@ -101,14 +108,16 @@ function applyBranding(brand) {
     }
     if (loginSupportWrap) loginSupportWrap.hidden = false;
     if (dashboardSupport) dashboardSupport.href = `mailto:${brand.supportEmail}`;
+    if (mobileDashboardSupport) mobileDashboardSupport.href = `mailto:${brand.supportEmail}`;
   } else {
     if (loginSupport) loginSupport.hidden = true;
     if (loginSupportWrap) loginSupportWrap.hidden = true;
     if (dashboardSupport) dashboardSupport.href = "#";
+    if (mobileDashboardSupport) mobileDashboardSupport.href = "#";
   }
 
   // Logo could be applied to brand mark if logo_url is provided (overrides text)
-  [brandMark, brandMarkSidebar, loginBrandMark].forEach(mark => {
+  [brandMark, brandMarkSidebar, brandMarkMobile, loginBrandMark].forEach(mark => {
     if (brand.logoUrl && mark) {
       mark.textContent = "";
       mark.classList.add("has-logo");

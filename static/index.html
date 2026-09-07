@@ -23,18 +23,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="/static/login.css">
-  <link rel="stylesheet" href="/static/dashboard.css">
+  <link rel="stylesheet" href="/static/login.css?v=mobile-content-20260907-2">
+  <link rel="stylesheet" href="/static/dashboard.css?v=mobile-content-20260907-2">
   <link rel="stylesheet" href="/static/interpretation.css">
   <link rel="stylesheet" href="/static/batch-upload.css">
-  <script src="/static/branding.js"></script>
+  <script src="/static/branding.js?v=mobile-content-20260907-2"></script>
   <script>
     if (typeof BRANDING !== 'undefined') {
       document.title = BRANDING.appName;
     }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="/static/app.js" defer></script>
+  <script src="/static/app.js?v=plan-auth-mode-20260907" defer></script>
   <script src="/static/interpretation.js" defer></script>
 
 <!-- FELTUS SIGNUP STYLE START -->
@@ -148,6 +148,20 @@
   <section id="login-screen" class="login-screen" hidden>
     <div class="login-image-wrapper">
       <img src="/images/login-image.png" class="login-image" alt="FELTUS Extraction Lab login">
+      <section class="login-mobile-intro" aria-label="FELTUS Extraction Lab overview">
+        <div class="login-mobile-brand">
+          <img id="login-logo" class="login-mobile-logo" src="/images/logo.png" alt="FELTUS Extraction Lab">
+          <span id="login-brand-mark" class="login-mobile-brand-mark" hidden aria-hidden="true">F</span>
+        </div>
+        <p id="login-app-name" class="login-mobile-app-name">FELTUS Extraction Lab</p>
+        <h1>Intelligent extraction.<br><span>Powerful results.</span></h1>
+        <p class="login-mobile-copy">Preserve every original document, extract its contents, and review reliable results in one secure workspace.</p>
+        <ul class="login-mobile-highlights" aria-label="Workspace capabilities">
+          <li>Preserved source PDFs</li>
+          <li>Text, table &amp; OCR extraction</li>
+          <li>Traceable review-ready output</li>
+        </ul>
+      </section>
       <div class="login-form-overlay">
         <div class="auth-card">
           <div class="auth-card-header">
@@ -413,6 +427,47 @@
           <svg class="nav-icon" aria-hidden="true" width="16" height="16"><use href="#icon-logout"/></svg>
           <span>Log out</span>
         </button>
+      </div>
+    </aside>
+
+    <header class="mobile-dashboard-bar">
+      <div class="mobile-dashboard-brand">
+        <img id="brand-logo-mobile" class="mobile-brand-logo" src="/images/logo.png" alt="FELTUS Extraction Lab">
+        <span id="brand-mark-mobile" class="mobile-brand-mark" hidden aria-hidden="true">F</span>
+      </div>
+      <div class="mobile-dashboard-actions">
+        <div id="mobile-health" class="mobile-health" aria-live="polite"><i></i><span>Checking service</span></div>
+        <button id="mobile-menu-toggle" class="mobile-menu-toggle" type="button" aria-label="Open dashboard menu" aria-controls="mobile-dashboard-drawer" aria-expanded="false">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <button id="mobile-menu-backdrop" class="mobile-menu-backdrop" type="button" aria-label="Close dashboard menu" hidden></button>
+    <aside id="mobile-dashboard-drawer" class="mobile-dashboard-drawer" aria-label="Dashboard menu" hidden>
+      <div class="mobile-drawer-header">
+        <span>Workspace menu</span>
+        <button id="mobile-menu-close" class="mobile-menu-close" type="button" aria-label="Close dashboard menu">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+      <nav class="mobile-sidebar-nav">
+        <a href="#dashboard" class="mobile-nav-item active" data-target="dashboard" aria-current="page"><svg class="nav-icon" aria-hidden="true"><use href="#icon-dashboard"/></svg><span>Dashboard</span></a>
+        <a href="#upload" class="mobile-nav-item" data-target="upload"><svg class="nav-icon" aria-hidden="true"><use href="#icon-upload"/></svg><span>Upload</span></a>
+        <a href="#runs" class="mobile-nav-item" data-target="runs"><svg class="nav-icon" aria-hidden="true"><use href="#icon-history"/></svg><span>Runs</span></a>
+        <a href="#documents" class="mobile-nav-item" data-target="documents"><svg class="nav-icon" aria-hidden="true"><use href="#icon-file-text"/></svg><span>Documents</span></a>
+        <a class="mobile-nav-item disabled" aria-disabled="true" title="Coming soon"><svg class="nav-icon" aria-hidden="true"><use href="#icon-template"/></svg><span>Templates</span></a>
+        <a class="mobile-nav-item disabled" aria-disabled="true" title="Coming soon"><svg class="nav-icon" aria-hidden="true"><use href="#icon-settings"/></svg><span>Settings</span></a>
+        <a class="mobile-nav-item disabled" aria-disabled="true" title="Coming soon"><svg class="nav-icon" aria-hidden="true"><use href="#icon-key"/></svg><span>API Keys</span></a>
+        <a class="mobile-nav-item disabled" aria-disabled="true" title="Coming soon"><svg class="nav-icon" aria-hidden="true"><use href="#icon-chart"/></svg><span>Usage</span></a>
+        <a id="mobile-support-link" href="#" class="mobile-nav-item" data-target="support"><svg class="nav-icon" aria-hidden="true"><use href="#icon-help"/></svg><span>Support</span></a>
+      </nav>
+      <div class="mobile-drawer-footer">
+        <button id="mobile-user-card" class="mobile-user-card" type="button">
+          <div class="user-avatar"><span id="mobile-user-initials"></span></div>
+          <div class="user-info"><strong id="mobile-user-name"></strong><span id="mobile-user-role"></span></div>
+        </button>
+        <button id="mobile-logout-button" class="mobile-logout-link" type="button"><svg class="nav-icon" aria-hidden="true"><use href="#icon-logout"/></svg><span>Log out</span></button>
       </div>
     </aside>
 
@@ -695,7 +750,7 @@
     let checkoutInProgress = false;
 
 
-    async function continueSelectedPlan() {
+    async function continueSelectedPlan(me) {
 
         const plan =
             localStorage.getItem(
@@ -716,44 +771,24 @@
 
 
         /*
-         * Wait until the existing FELTUS login succeeds.
-         *
-         * /api/auth/me uses the existing Supabase session cookie.
+         * `me` is the session payload already produced by the single
+         * FELTUS auth bootstrap (/api/auth/me) or by a successful
+         * login / email-confirmation exchange. This handler runs only
+         * after authentication is confirmed — it never issues its own
+         * /api/auth/me request.
          */
-        let authResponse;
-
-        try {
-
-            authResponse = await fetch(
-                "/api/auth/me",
-                {
-                    credentials: "same-origin",
-                    cache: "no-store"
-                }
-            );
-
-        } catch (error) {
-
-            return;
-        }
-
-
-        if (!authResponse.ok) {
-
-            /*
-             * User is still on the login screen.
-             * Do nothing. Existing FELTUS login remains untouched.
-             */
+        if (
+            !me ||
+            !me.user
+        ) {
             return;
         }
 
 
         /*
-         * FREE:
-         * Organization already receives the 10-page lifetime
-         * free entitlement from FELTUS.
-         *
-         * No Stripe call.
+         * FREE: the account has its free entitlement without Stripe.
+         * Continue into the focused extraction workspace instead of the
+         * member dashboard.
          */
         if (plan === "free_trial") {
 
@@ -765,11 +800,7 @@
                 "feltus_selected_interval"
             );
 
-            history.replaceState(
-                {},
-                "",
-                "/app"
-            );
+            window.location.replace("/free");
 
             return;
         }
@@ -855,15 +886,17 @@
 
 
     /*
-     * Check immediately for an existing session.
-     * If user is logged out, keep checking while they complete
-     * the normal FELTUS login form.
+     * Continue once per confirmed sign-in: the single bootstrap check
+     * in app.js, the login form, or the email-confirmation exchange.
+     * A logged-out visitor never triggers /api/auth/me from here.
      */
-    continueSelectedPlan();
-
-    setInterval(
-        continueSelectedPlan,
-        1200
+    window.addEventListener(
+        "feltus:authenticated",
+        function (event) {
+            continueSelectedPlan(
+                event.detail
+            );
+        }
     );
 
 })();
@@ -974,6 +1007,13 @@
             switchButton.textContent =
                 "Create Account";
         }
+    }
+
+
+    if (
+        params.get("mode") === "signup"
+    ) {
+        setMode("signup");
     }
 
 
@@ -1124,6 +1164,14 @@
                 }
 
 
+                try {
+                    localStorage.setItem(
+                        "feltus_returning_user",
+                        "true"
+                    );
+                } catch {}
+
+
                 if (
                     data.requires_confirmation
                 ) {
@@ -1171,7 +1219,7 @@
                  *
                  * Existing FELTUS plan-continuation logic will:
                  *
-                 * FREE -> dashboard
+                 * FREE -> focused extraction workspace
                  * PAID -> Stripe Checkout
                  */
 

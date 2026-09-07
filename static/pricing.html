@@ -370,14 +370,14 @@
 
                     <div class="price">$0</div>
 
-                    <div class="pages">10 pages total</div>
+                    <div class="pages">20 pages · first month</div>
 
                     <ul>
-                        <li>10 lifetime extraction pages</li>
-                        <li>No monthly reset</li>
-                        <li>PDF extraction</li>
-                        <li>View and export results</li>
-                        <li>Access core features</li>
+                        <li>Free for your first month</li>
+                        <li>20 extraction pages</li>
+                        <li>PDF extraction + OCR</li>
+                        <li>Raw text view, copy &amp; download</li>
+                        <li>Structured exports require a paid plan</li>
                     </ul>
 
                     <button type="button" onclick="choosePlan('free_trial')">
@@ -457,12 +457,38 @@
 
 <script>
 
+const upgradeParams = new URLSearchParams(window.location.search);
+const requestedOutput = upgradeParams.get("output");
+const upgradeNotice = document.getElementById("upgrade-notice");
+
+if (upgradeParams.get("upgrade") && upgradeNotice) {
+    const label = requestedOutput
+        ? requestedOutput.toUpperCase() + " output"
+        : "That output";
+    upgradeNotice.textContent = label + " requires a paid membership. Choose a plan below to unlock every structured output format.";
+    upgradeNotice.hidden = false;
+}
+
+function hasKnownFeltusAccount() {
+
+    /*
+     * A successful sign-in or account creation leaves this local,
+     * browser-specific hint. New visitors start in account creation;
+     * returning visitors are taken straight to Sign In instead.
+     */
+    try {
+        return localStorage.getItem("feltus_returning_user") === "true";
+    } catch {
+        return false;
+    }
+}
+
 function choosePlan(plan, interval) {
 
     /*
      * Store the selected plan so it survives the login or
-     * account-creation step. The /app page will then continue
-     * Free plans directly to the dashboard, or paid plans through
+     * account-creation step. Free plans continue to the focused
+     * extraction workspace; paid plans continue through
      * Stripe Checkout once the user is authenticated.
      */
 
@@ -483,6 +509,15 @@ function choosePlan(plan, interval) {
     }
 
     const params = ["plan=" + encodeURIComponent(plan)];
+
+    if (plan === "free_trial") {
+        params.push("next=free");
+    } else {
+        params.push(
+            "mode=" +
+            (hasKnownFeltusAccount() ? "login" : "signup")
+        );
+    }
 
     if (interval) {
         params.push(

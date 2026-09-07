@@ -57,14 +57,41 @@ function setLoginLoading(loading) {
   }
 }
 
+function rememberReturningUser() {
+  try { localStorage.setItem("feltus_returning_user", "true"); } catch {}
+}
+
+function shouldOpenFreeWorkspace() {
+  const params = new URLSearchParams(window.location.search);
+  const requestedPlan = params.get("plan");
+  const requestedDestination = params.get("next");
+  let selectedPlan = null;
+  try { selectedPlan = localStorage.getItem("feltus_selected_plan"); } catch {}
+  return (requestedPlan === "free_trial" && requestedDestination === "free") || selectedPlan === "free_trial";
+}
+
+function openFreeWorkspace() {
+  try {
+    localStorage.removeItem("feltus_selected_plan");
+    localStorage.removeItem("feltus_selected_interval");
+  } catch {}
+  window.location.replace("/free");
+}
+
 function setAuthenticated(value, me = null) {
   isAuthenticated = value;
+  if (value) rememberReturningUser();
+  if (value && shouldOpenFreeWorkspace()) {
+    openFreeWorkspace();
+    return;
+  }
   $("#login-screen").hidden = value;
   $("#app-main").hidden = !value;
   const topbar = $("#topbar");
   if (topbar) topbar.hidden = true;
-  const logoutButton = $("#logout-button");
-  if (logoutButton) logoutButton.hidden = !value;
+  document.querySelectorAll("#logout-button, #mobile-logout-button").forEach(button => {
+    button.hidden = !value;
+  });
   const errorEl = $("#login-error");
   if (errorEl) errorEl.hidden = true;
   if (!value) {
@@ -78,6 +105,10 @@ function setAuthenticated(value, me = null) {
     $("#user-name").textContent = "";
     $("#user-initials").textContent = "";
     $("#user-role").textContent = "";
+    $("#mobile-user-name").textContent = "";
+    $("#mobile-user-initials").textContent = "";
+    $("#mobile-user-role").textContent = "";
+    setMobileMenuOpen(false);
     renderOverview();
   }
   if (value) {
@@ -94,9 +125,13 @@ function setAuthenticated(value, me = null) {
       $("#user-name").textContent = me.user.name || "";
       $("#user-initials").textContent = getInitials(me.user.name);
       $("#user-role").textContent = me.active_organization?.role ? me.active_organization.role.toLowerCase() : "";
+      $("#mobile-user-name").textContent = me.user.name || "";
+      $("#mobile-user-initials").textContent = getInitials(me.user.name);
+      $("#mobile-user-role").textContent = me.active_organization?.role ? me.active_organization.role.toLowerCase() : "";
     }
     loadDashboard();
     loadRuns();
+    window.dispatchEvent(new CustomEvent("feltus:authenticated", {detail: me}));
   }
 }
 
@@ -133,6 +168,7 @@ async function login(event) {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({email, password})
     });
+    rememberReturningUser();
     setAuthenticated(true, result);
   } catch (e) {
     if (errorEl) {
@@ -243,8 +279,10 @@ function getInitials(name) {
 async function checkHealth() {
   try {
     const health = await api("/health");
-    $("#health").classList.add("ok");
-    $("#health").lastChild.textContent = " Service ready";
+    document.querySelectorAll("#health, #mobile-health").forEach(element => {
+      element.classList.add("ok");
+      element.lastElementChild.textContent = "Service ready";
+    });
     if (health.max_upload_mb) {
       const maxUpload = $("#max-upload-size");
       if (maxUpload) maxUpload.textContent = health.max_upload_mb;
@@ -612,7 +650,8 @@ async function openRun(id) {
 
   const pdfUrl = `/api/documents/${run.document_id}/file`;
   $("#open-pdf").href = pdfUrl;
-  $("#export").href = `/api/runs/${run.id}/json`;
+  const exportMenu = $("#export-menu");
+  if (exportMenu) exportMenu.dataset.runId = run.id;
 
   const summaryHtml = summary(run.normalized, run.warnings, run.errors);
   $("#tab-compare").innerHTML = summaryHtml;
@@ -780,7 +819,7 @@ document.querySelectorAll(".metric-card").forEach(card => {
 });
 
 function setSidebarActive(target) {
-  document.querySelectorAll(".nav-item").forEach(item => {
+  document.querySelectorAll(".nav-item, .mobile-nav-item").forEach(item => {
     const active = item.dataset.target === target;
     item.classList.toggle("active", active);
     if (active) item.setAttribute("aria-current", "page");
@@ -788,7 +827,7 @@ function setSidebarActive(target) {
   });
 }
 
-document.querySelectorAll(".nav-item").forEach(item => {
+document.querySelectorAll(".nav-item, .mobile-nav-item").forEach(item => {
   item.onclick = event => {
     if (item.classList.contains("disabled")) {
       event.preventDefault();
@@ -798,14 +837,40 @@ document.querySelectorAll(".nav-item").forEach(item => {
     if (!target) return;
     if (target === "support") {
       if (typeof BRANDING === "undefined" || !BRANDING.supportEmail) event.preventDefault();
+      if (item.classList.contains("mobile-nav-item")) setMobileMenuOpen(false);
       return;
     }
     event.preventDefault();
     setSidebarActive(target);
+    if (item.classList.contains("mobile-nav-item")) setMobileMenuOpen(false);
     const section = $(`#${target}`);
     if (section) section.scrollIntoView({behavior: "smooth", block: "start"});
     else if (target === "dashboard") window.scrollTo({top: 0, behavior: "smooth"});
   };
+});
+
+const mobileMenuToggle = $("#mobile-menu-toggle");
+const mobileMenuClose = $("#mobile-menu-close");
+const mobileMenuBackdrop = $("#mobile-menu-backdrop");
+const mobileDashboardDrawer = $("#mobile-dashboard-drawer");
+
+function setMobileMenuOpen(open) {
+  if (!mobileDashboardDrawer || !mobileMenuBackdrop || !mobileMenuToggle) return;
+  mobileDashboardDrawer.hidden = !open;
+  mobileMenuBackdrop.hidden = !open;
+  mobileMenuToggle.setAttribute("aria-expanded", String(open));
+  mobileMenuToggle.setAttribute("aria-label", open ? "Close dashboard menu" : "Open dashboard menu");
+  document.body.classList.toggle("mobile-menu-open", open);
+}
+
+if (mobileMenuToggle) mobileMenuToggle.onclick = () => setMobileMenuOpen(mobileDashboardDrawer.hidden);
+if (mobileMenuClose) mobileMenuClose.onclick = () => setMobileMenuOpen(false);
+if (mobileMenuBackdrop) mobileMenuBackdrop.onclick = () => setMobileMenuOpen(false);
+window.addEventListener("keydown", event => {
+  if (event.key === "Escape") setMobileMenuOpen(false);
+});
+window.addEventListener("resize", () => {
+  if (window.innerWidth > 900) setMobileMenuOpen(false);
 });
 
 const runHistory = $("#run-history");
@@ -824,6 +889,7 @@ if (toggleRunHistory && dashboardLower) {
 $("#refresh").onclick = () => { if (isAuthenticated) { loadRuns(state.current?.id); loadDashboard(); } };
 $("#login-form").onsubmit = login;
 $("#logout-button").onclick = logout;
+$("#mobile-logout-button").onclick = logout;
 
 const passwordInput = $("#login-password");
 const passwordToggle = $("#login-toggle-password");

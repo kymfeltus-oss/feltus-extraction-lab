@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Free PDF Extraction · FELTUS</title>
+  <script>
+    (function () {
+      if (window.location.hostname === "127.0.0.1") {
+        const url = new URL(window.location.href);
+        url.hostname = "localhost";
+        window.location.replace(url);
+      }
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/free.css?v=free-workspace-20260907-2">
+  <script src="/static/branding.js?v=free-workspace-20260907-2"></script>
+  <script src="/static/free.js?v=free-workspace-20260907-2" defer></script>
+</head>
+<body>
+  <div id="free-loading" class="free-loading" aria-live="polite">
+    <span class="free-loading-spinner" aria-hidden="true"></span>
+    <span>Preparing your extraction workspace…</span>
+  </div>
+
+  <main id="free-app" class="free-app" hidden>
+    <header class="free-header">
+      <a class="free-brand" href="/" aria-label="FELTUS home">
+        <img id="brand-logo" class="free-brand-logo" src="/images/logo.png" alt="FELTUS Extraction Lab">
+        <span id="brand-mark" class="free-brand-mark" hidden aria-hidden="true">F</span>
+        <span class="free-brand-copy"><strong id="brand-name">FELTUS</strong><span id="brand-tagline">Extraction Lab</span></span>
+      </a>
+      <div class="free-header-actions">
+        <span class="free-plan-badge">Free extraction</span>
+        <a class="free-upgrade-link" href="/pricing">Upgrade</a>
+        <button id="free-logout" class="free-logout" type="button">Log out</button>
+      </div>
+    </header>
+
+    <section class="free-intro" aria-labelledby="free-title">
+      <p class="free-eyebrow">RAW PDF EXTRACTION</p>
+      <h1 id="free-title">Upload one PDF. Get its raw data.</h1>
+      <p>Extract text with OCR when needed, then copy it or download a plain-text file. No dashboard, history, or analysis workspace required.</p>
+    </section>
+
+    <div class="free-workspace">
+      <section class="free-card free-upload-card" aria-labelledby="upload-title">
+        <div class="free-card-heading">
+          <span class="free-step">1</span>
+          <div>
+            <p class="free-card-eyebrow">SOURCE DOCUMENT</p>
+            <h2 id="upload-title">Choose a PDF to extract</h2>
+          </div>
+        </div>
+
+        <form id="free-upload-form">
+          <input id="free-pdf-input" type="file" accept="application/pdf,.pdf" hidden>
+          <div id="free-drop-zone" class="free-drop-zone" tabindex="0" role="button" aria-label="Choose a PDF file or drop one here">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <strong>Drop a PDF here</strong>
+            <span>or select a file from your device</span>
+            <button id="free-choose-file" class="free-secondary-button" type="button">Choose PDF</button>
+          </div>
+          <div id="free-selection" class="free-selection" hidden>
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/></svg>
+            <span id="free-selected-file"></span>
+            <button id="free-clear-file" type="button" aria-label="Remove selected file">Remove</button>
+          </div>
+          <button id="free-extract" class="free-extract-button" type="submit" disabled>Extract raw data</button>
+          <p id="free-upload-status" class="free-status" role="status"></p>
+        </form>
+      </section>
+
+      <aside class="free-card free-output-options" aria-labelledby="options-title">
+        <div class="free-card-heading">
+          <span class="free-step">2</span>
+          <div>
+            <p class="free-card-eyebrow">YOUR OUTPUT</p>
+            <h2 id="options-title">Raw text is included</h2>
+          </div>
+        </div>
+        <p class="free-option-copy">Copy or download your extracted raw data below. Need structured or presentation-ready outputs? Choose one to view memberships.</p>
+        <div class="free-upgrade-options" aria-label="Premium output formats">
+          <a href="/pricing?upgrade=exports&amp;output=json"><span>JSON data</span><small>Upgrade</small></a>
+          <a href="/pricing?upgrade=exports&amp;output=csv"><span>CSV spreadsheet</span><small>Upgrade</small></a>
+          <a href="/pricing?upgrade=exports&amp;output=xlsx"><span>Excel workbook</span><small>Upgrade</small></a>
+          <a href="/pricing?upgrade=exports&amp;output=md"><span>Markdown report</span><small>Upgrade</small></a>
+          <a href="/pricing?upgrade=exports&amp;output=html"><span>HTML tables</span><small>Upgrade</small></a>
+          <a href="/pricing?upgrade=exports&amp;output=coords"><span>Coordinate map</span><small>Upgrade</small></a>
+        </div>
+        <a class="free-see-plans" href="/pricing">Compare memberships <span aria-hidden="true">→</span></a>
+      </aside>
+    </div>
+
+    <section id="free-result" class="free-card free-result" aria-labelledby="result-title" hidden>
+      <div class="free-result-heading">
+        <div>
+          <p class="free-card-eyebrow">EXTRACTION COMPLETE</p>
+          <h2 id="result-title">Raw data</h2>
+          <p id="free-result-meta"></p>
+        </div>
+        <div class="free-result-actions">
+          <button id="free-copy" class="free-secondary-button" type="button">Copy raw data</button>
+          <button id="free-download" class="free-download-button" type="button">Download .txt</button>
+        </div>
+      </div>
+      <p id="free-copy-status" class="free-copy-status" role="status"></p>
+      <pre id="free-raw-output" class="free-raw-output"></pre>
+    </section>
+  </main>
+</body>
+</html>

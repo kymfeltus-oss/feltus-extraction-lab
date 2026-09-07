@@ -235,6 +235,13 @@ def switch_organization(
 def index() -> FileResponse:
     return FileResponse(settings.root_dir / "static" / "index.html")
 
+
+@app.get("/free", response_class=HTMLResponse)
+def free_workspace() -> FileResponse:
+    """Focused workspace used by the public Free Trial entry point."""
+    return FileResponse(settings.root_dir / "static" / "free.html")
+
+
 @app.get("/", response_class=HTMLResponse)
 def landing() -> FileResponse:
     return FileResponse(
