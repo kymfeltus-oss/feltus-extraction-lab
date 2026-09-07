@@ -30,6 +30,7 @@ class GuestFreeExtractionTests(unittest.TestCase):
         )
         database = Database(self.database_path)
         database.initialize()
+        self.database = database
         self.original_ledger = app.state.guest_extraction_ledger
         app.state.guest_extraction_ledger = GuestExtractionLedger(
             database,
@@ -52,7 +53,10 @@ class GuestFreeExtractionTests(unittest.TestCase):
 
         workspace = self.client.get("/free")
         self.assertEqual(workspace.status_code, 200)
-        self.assertIn("No account required", workspace.text)
+        self.assertIn("NO ACCOUNT REQUIRED", workspace.text)
+        self.assertIn('id="free-pdf-canvas"', workspace.text)
+        self.assertIn("pdf.min.js", workspace.text)
+        self.assertIn("Download .txt", workspace.text)
 
         script = self.client.get("/static/free.js")
         self.assertEqual(script.status_code, 200)
@@ -71,6 +75,21 @@ class GuestFreeExtractionTests(unittest.TestCase):
         self.assertEqual(first.status_code, 200, first.text)
         self.assertEqual(first.json()["page_count"], 1)
         self.assertIn("Guest extraction page 1", first.json()["raw_text"])
+
+        with self.database.connect() as conn:
+            usage = conn.execute(
+                """
+                SELECT ip_hash, status, page_count, created_at, completed_at
+                FROM guest_free_extractions
+                """
+            ).fetchone()
+        self.assertIsNotNone(usage)
+        self.assertEqual(usage["status"], "completed")
+        self.assertEqual(usage["page_count"], 1)
+        self.assertEqual(len(usage["ip_hash"]), 64)
+        self.assertNotIn("203.0.113.7", usage["ip_hash"])
+        self.assertTrue(usage["created_at"])
+        self.assertTrue(usage["completed_at"])
 
         after = self.client.get("/api/free/status")
         self.assertEqual(after.status_code, 200)

@@ -95,6 +95,10 @@
             height: auto;
         }
 
+        .mobile-pricing-header {
+            display: none;
+        }
+
         /* Cards live only inside the large empty center of the artwork. */
         .overlay {
             position: absolute;
@@ -284,8 +288,8 @@
             box-shadow: 0 8px 26px rgba(192, 38, 211, 0.55);
         }
 
-        /* Below 1200px the image's center is too short for live cards,
-           so the artwork becomes a full-width banner and cards flow beneath. */
+        /* On narrower screens, keep the pricing content and brand header while
+           removing the oversized artwork banner above the plans. */
         @media (max-width: 1200px) {
             .page {
                 display: block;
@@ -294,6 +298,29 @@
 
             .bg-box {
                 max-width: none;
+            }
+
+            .bg {
+                display: none;
+            }
+
+            .mobile-pricing-header {
+                display: flex;
+                min-height: 190px;
+                align-items: center;
+                justify-content: center;
+                padding: 34px 20px 22px;
+                background:
+                    radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.28), transparent 68%),
+                    linear-gradient(180deg, #06152c 0%, #050d1c 100%);
+                text-align: center;
+            }
+
+            .mobile-pricing-header img {
+                display: block;
+                width: min(420px, 88vw);
+                max-height: 118px;
+                object-fit: contain;
             }
 
             .overlay {
@@ -360,6 +387,10 @@
     <div class="bg-box">
 
         <img class="bg" src="/images/pricing-image.png" alt="FELTUS Extraction Lab — Extract more. Uncover what matters.">
+
+        <div class="mobile-pricing-header" aria-hidden="true">
+            <img src="/images/logo.png" alt="">
+        </div>
 
         <div class="overlay">
 
