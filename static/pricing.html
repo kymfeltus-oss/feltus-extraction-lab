@@ -366,15 +366,16 @@
             <div class="plans">
 
                 <div class="plan free">
-                    <h2>Free Trial</h2>
+                    <h2>Free</h2>
 
                     <div class="price">$0</div>
 
-                    <div class="pages">20 pages · first month</div>
+                    <div class="pages">One PDF · up to 20 pages</div>
 
                     <ul>
-                        <li>Free for your first month</li>
-                        <li>20 extraction pages</li>
+                        <li>No account or login required</li>
+                        <li>One extraction per IP address</li>
+                        <li>Up to 20 pages</li>
                         <li>PDF extraction + OCR</li>
                         <li>Raw text view, copy &amp; download</li>
                         <li>Structured exports require a paid plan</li>
@@ -485,11 +486,16 @@ function hasKnownFeltusAccount() {
 
 function choosePlan(plan, interval) {
 
+    if (plan === "free_trial") {
+        window.location.href = "/free";
+        return;
+    }
+
     /*
      * Store the selected plan so it survives the login or
-     * account-creation step. Free plans continue to the focused
-     * extraction workspace; paid plans continue through
-     * Stripe Checkout once the user is authenticated.
+     * account-creation step. Paid plans continue through Stripe
+     * Checkout once the user is authenticated. The free option
+     * returns above because it does not require an account.
      */
 
     localStorage.setItem(
@@ -510,14 +516,10 @@ function choosePlan(plan, interval) {
 
     const params = ["plan=" + encodeURIComponent(plan)];
 
-    if (plan === "free_trial") {
-        params.push("next=free");
-    } else {
-        params.push(
-            "mode=" +
-            (hasKnownFeltusAccount() ? "login" : "signup")
-        );
-    }
+    params.push(
+        "mode=" +
+        (hasKnownFeltusAccount() ? "login" : "signup")
+    );
 
     if (interval) {
         params.push(

@@ -26,6 +26,8 @@ from .supabase_usage import SupabaseUsage
 from .supabase_documents import SupabaseDocuments
 from .billing_routes import router as billing_router
 from .signup_routes import router as signup_router
+from .guest_access import GuestExtractionLedger
+from .guest_routes import router as guest_router
 
 
 
@@ -48,6 +50,7 @@ supabase_documents = SupabaseDocuments()
 app = FastAPI(title=APP_TITLE, version=APP_VERSION)
 app.include_router(billing_router)
 app.include_router(signup_router)
+app.include_router(guest_router)
 app.mount("/static", StaticFiles(directory=settings.root_dir / "static"), name="static")
 
 images_dir = settings.root_dir / "public" / "images"
@@ -61,6 +64,7 @@ app.state.supabase_storage = supabase_storage
 app.state.supabase_usage = supabase_usage
 app.state.supabase_documents = supabase_documents
 app.state.settings = settings
+app.state.guest_extraction_ledger = GuestExtractionLedger(database)
 
 
 class ReviewRequest(BaseModel):
@@ -238,7 +242,7 @@ def index() -> FileResponse:
 
 @app.get("/free", response_class=HTMLResponse)
 def free_workspace() -> FileResponse:
-    """Focused workspace used by the public Free Trial entry point."""
+    """Public one-time extraction workspace; no account is required."""
     return FileResponse(settings.root_dir / "static" / "free.html")
 
 

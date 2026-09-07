@@ -1,4 +1,4 @@
-const freeState = { file: null, run: null };
+const freeState = { file: null, run: null, available: true };
 
 const free$ = selector => document.querySelector(selector);
 
@@ -12,17 +12,9 @@ async function freeRequest(url, options = {}) {
     detail = typeof body.detail === "string" ? body.detail : body.detail?.message || detail;
   } catch {}
 
-  if (response.status === 401) {
-    window.location.replace("/app?plan=free_trial&next=free");
-    throw new Error("Sign in required.");
-  }
-
-  if (response.status === 402) {
-    window.location.assign("/pricing?upgrade=free-limit");
-    throw new Error("An upgrade is required to continue.");
-  }
-
-  throw new Error(detail);
+  const error = new Error(detail);
+  error.status = response.status;
+  throw error;
 }
 
 function formatFileSize(bytes) {
@@ -42,12 +34,22 @@ function renderSelectedFile() {
   const filename = free$("#free-selected-file");
   const extract = free$("#free-extract");
   selection.hidden = !freeState.file;
-  extract.disabled = !freeState.file;
+  extract.disabled = !freeState.file || !freeState.available;
   if (freeState.file) filename.textContent = `${freeState.file.name} · ${formatFileSize(freeState.file.size)}`;
 }
 
+function setFreeAvailability(available) {
+  freeState.available = available;
+  const dropZone = free$("#free-drop-zone");
+  const input = free$("#free-pdf-input");
+  dropZone.classList.toggle("unavailable", !available);
+  dropZone.setAttribute("aria-disabled", String(!available));
+  input.disabled = !available;
+  renderSelectedFile();
+}
+
 function selectFreeFile(file) {
-  if (!file) return;
+  if (!file || !freeState.available) return;
   if (!file.name.toLowerCase().endsWith(".pdf")) {
     setFreeStatus("Choose a PDF file to continue.", true);
     return;
@@ -130,27 +132,36 @@ async function extractFreeFile(event) {
     const data = new FormData();
     data.append("file", freeState.file, freeState.file.name);
     data.append("relative_path", freeState.file.name);
-    const upload = await freeRequest("/api/documents", { method: "POST", body: data });
-    const run = await freeRequest(`/api/runs/${encodeURIComponent(upload.run_id)}`);
-    showRawResult(run);
+    const result = await freeRequest("/api/free/extract", { method: "POST", body: data });
+    showRawResult(result);
     clearFreeFile(false);
-    setFreeStatus("Extraction complete.");
+    setFreeAvailability(false);
+    setFreeStatus("Your free extraction is complete. Download the raw text below.");
   } catch (error) {
+    if (error.status === 409) setFreeAvailability(false);
     setFreeStatus(error.message || "The PDF could not be extracted.", true);
   } finally {
     button.textContent = "Extract raw data";
-    button.disabled = !freeState.file;
+    button.disabled = !freeState.file || !freeState.available;
   }
 }
 
 async function initializeFreeWorkspace() {
+  document.title = `Free PDF Extraction · ${window.BRANDING?.brandName || "FELTUS"}`;
+  free$("#free-app").hidden = false;
+  free$("#free-loading").hidden = true;
   try {
-    await freeRequest("/api/auth/me");
-    document.title = `Free PDF Extraction · ${window.BRANDING?.brandName || "FELTUS"}`;
-    free$("#free-app").hidden = false;
-    free$("#free-loading").hidden = true;
-  } catch {
-    // freeRequest sends unauthenticated visitors through the sign-in flow.
+    const status = await freeRequest("/api/free/status");
+    setFreeAvailability(status.available);
+    if (!status.available) {
+      setFreeStatus(
+        "The free extraction has already been used from this IP address. Choose a membership to continue.",
+        true
+      );
+    }
+  } catch (error) {
+    setFreeAvailability(false);
+    setFreeStatus(error.message || "The free extraction service is unavailable.", true);
   }
 }
 
@@ -187,9 +198,5 @@ free$("#free-clear-file").addEventListener("click", clearFreeFile);
 free$("#free-upload-form").addEventListener("submit", extractFreeFile);
 free$("#free-copy").addEventListener("click", copyRawData);
 free$("#free-download").addEventListener("click", downloadRawData);
-free$("#free-logout").addEventListener("click", async () => {
-  try { await fetch("/api/auth/logout", { method: "POST", credentials: "include" }); } catch {}
-  window.location.replace("/");
-});
 
 initializeFreeWorkspace();

@@ -117,7 +117,7 @@ button, a, input { font: inherit; }
   letter-spacing: 0.06em;
 }
 
-.free-upgrade-link, .free-logout {
+.free-upgrade-link, .free-sign-in {
   min-height: 36px;
   padding: 8px 12px;
   border: 1px solid var(--free-line);
@@ -136,7 +136,7 @@ button, a, input { font: inherit; }
   color: #e8f4ff;
 }
 
-.free-upgrade-link:hover, .free-upgrade-link:focus-visible, .free-logout:hover, .free-logout:focus-visible {
+.free-upgrade-link:hover, .free-upgrade-link:focus-visible, .free-sign-in:hover, .free-sign-in:focus-visible {
   border-color: var(--free-cyan);
   color: #fff;
   outline: none;
@@ -235,9 +235,18 @@ button, a, input { font: inherit; }
   outline: none;
 }
 
+.free-drop-zone.unavailable {
+  border-color: #26384d;
+  background: rgba(2, 6, 23, 0.5);
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .free-drop-zone svg { width: 42px; height: 42px; margin-bottom: 13px; color: var(--free-blue); filter: drop-shadow(0 0 9px rgba(32, 132, 255, 0.4)); }
 .free-drop-zone strong { color: var(--free-ink); font-size: 15px; }
 .free-drop-zone > span { margin: 3px 0 15px; font-size: 12px; }
+
+.free-limit-note { margin: 10px 0 0; color: var(--free-muted); font-size: 11px; text-align: center; }
 
 .free-secondary-button, .free-download-button, .free-extract-button {
   border-radius: 10px;
@@ -315,7 +324,7 @@ button, a, input { font: inherit; }
   .free-brand-logo { width: 144px; height: 40px; }
   .free-plan-badge { display: none; }
   .free-header-actions { gap: 7px; }
-  .free-upgrade-link, .free-logout { padding: 7px 9px; }
+  .free-upgrade-link, .free-sign-in { padding: 7px 9px; }
   .free-intro { padding: 38px 0 24px; }
   .free-intro h1 { font-size: 34px; }
   .free-workspace { grid-template-columns: 1fr; }
@@ -329,7 +338,7 @@ button, a, input { font: inherit; }
 @media (max-width: 390px) {
   .free-brand-logo { width: 118px; }
   .free-header-actions { gap: 5px; }
-  .free-upgrade-link, .free-logout { min-height: 33px; padding: 6px 7px; font-size: 11px; }
+  .free-upgrade-link, .free-sign-in { min-height: 33px; padding: 6px 7px; font-size: 11px; }
   .free-intro h1 { font-size: 30px; }
   .free-result-actions { display: grid; grid-template-columns: 1fr; }
   .free-result-actions button { width: 100%; }

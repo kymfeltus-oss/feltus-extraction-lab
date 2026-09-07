@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/free.css?v=free-workspace-20260907-2">
-  <script src="/static/branding.js?v=free-workspace-20260907-2"></script>
-  <script src="/static/free.js?v=free-workspace-20260907-2" defer></script>
+  <link rel="stylesheet" href="/static/free.css?v=guest-workspace-20260907">
+  <script src="/static/branding.js?v=guest-workspace-20260907"></script>
+  <script src="/static/free.js?v=guest-workspace-20260907" defer></script>
 </head>
 <body>
   <div id="free-loading" class="free-loading" aria-live="polite">
@@ -36,14 +36,14 @@
       <div class="free-header-actions">
         <span class="free-plan-badge">Free extraction</span>
         <a class="free-upgrade-link" href="/pricing">Upgrade</a>
-        <button id="free-logout" class="free-logout" type="button">Log out</button>
+        <a class="free-sign-in" href="/app?mode=login">Sign in</a>
       </div>
     </header>
 
     <section class="free-intro" aria-labelledby="free-title">
       <p class="free-eyebrow">RAW PDF EXTRACTION</p>
       <h1 id="free-title">Upload one PDF. Get its raw data.</h1>
-      <p>Extract text with OCR when needed, then copy it or download a plain-text file. No dashboard, history, or analysis workspace required.</p>
+      <p>No account required. Extract one PDF of up to 20 pages, then copy the raw text or download it as a plain-text file.</p>
     </section>
 
     <div class="free-workspace">
@@ -64,6 +64,7 @@
             <span>or select a file from your device</span>
             <button id="free-choose-file" class="free-secondary-button" type="button">Choose PDF</button>
           </div>
+          <p class="free-limit-note">One free extraction per IP address · up to 20 pages</p>
           <div id="free-selection" class="free-selection" hidden>
             <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/></svg>
             <span id="free-selected-file"></span>
