@@ -232,10 +232,21 @@ class SupabaseAuth:
         user = self.get_user(access_token)
         user_id = user["id"]
         user_email = user.get("email", "")
-        user_name = user.get("user_metadata", {}).get("name") or user_email.split("@")[0].replace(".", " ").title()
+        metadata = user.get("user_metadata") or {}
+        user_name = metadata.get("full_name") or metadata.get("name") or user_email.split("@")[0].replace(".", " ").title()
         organizations = self.get_organizations(user_id, access_token)
         if not organizations:
-            raise HTTPException(status_code=403, detail="User has no organization access")
+            # Earlier signups created the Supabase user but stopped before
+            # provisioning a workspace. Repair only after validating the
+            # user's access token above, for this signup flow's metadata.
+            if not metadata.get("full_name"):
+                raise HTTPException(status_code=403, detail="User has no organization access")
+            from .signup_routes import ensure_organization
+
+            ensure_organization(user_id, f"{user_name}'s Workspace")
+            organizations = self.get_organizations(user_id, access_token)
+            if not organizations:
+                raise HTTPException(status_code=403, detail="User has no organization access")
         active = None
         if active_org_id:
             for org in organizations:

@@ -228,6 +228,62 @@ def _delete_organization(
         pass
 
 
+def ensure_organization(user_id: str, organization_name: str) -> dict:
+    """Provision the workspace once, including for a user orphaned by signup."""
+    existing = _supabase_request(
+        "GET",
+        (
+            "/rest/v1/organization_members"
+            "?select=organization:organization_id(id,name,slug)"
+            f"&user_id=eq.{urllib.parse.quote(user_id, safe='')}"
+            "&limit=1"
+        ),
+        service_role=True,
+    )
+    if existing:
+        organization = existing[0].get("organization")
+        if organization:
+            return organization
+
+    organization_id = None
+    try:
+        rows = _supabase_request(
+            "POST",
+            "/rest/v1/organizations?select=id,name,slug",
+            {
+                "name": organization_name,
+                "slug": _slugify(organization_name),
+            },
+            service_role=True,
+            prefer="return=representation",
+        )
+        if not isinstance(rows, list) or not rows:
+            raise RuntimeError("Organization creation failed.")
+        organization = rows[0]
+        organization_id = organization["id"]
+        _supabase_request(
+            "POST",
+            "/rest/v1/organization_members",
+            {
+                "organization_id": organization_id,
+                "user_id": user_id,
+                "role": "owner",
+            },
+            service_role=True,
+            prefer="return=minimal",
+        )
+        return organization
+    except Exception as exc:
+        if organization_id:
+            _delete_organization(organization_id)
+        if isinstance(exc, HTTPException):
+            raise
+        raise HTTPException(
+            status_code=500,
+            detail="Account was not completed. Please try again.",
+        ) from exc
+
+
 @router.post("/register")
 def register(
     payload: RegisterRequest,
@@ -281,9 +337,11 @@ def register(
         redirect_to=redirect_to,
     )
 
-    user = signup.get("user") or {}
+    # GoTrue returns a top-level user when email confirmation is required,
+    # and a token response with a nested user for immediate sign-in.
+    user = signup.get("user") or signup
 
-    user_id = user.get("id")
+    user_id = user.get("id") if isinstance(user, dict) else None
 
     if not user_id:
         detail = "Supabase did not create the user account."
@@ -293,94 +351,16 @@ def register(
                 detail = f"{detail} Supabase response: {json.dumps(safe)}"
         raise HTTPException(status_code=400, detail=detail)
 
-    organization_id = None
-
-    try:
-
-        # ----------------------------------------------------
-        # CREATE ORGANIZATION
-        # Billing trigger automatically creates
-        # organization_billing with 10 lifetime free pages.
-        # ----------------------------------------------------
-
-        organization_rows = _supabase_request(
-            "POST",
-            (
-                "/rest/v1/organizations"
-                "?select=id,name,slug"
-            ),
-            {
-                "name": organization_name,
-                "slug": _slugify(
-                    organization_name
-                ),
-            },
-            service_role=True,
-            prefer="return=representation",
-        )
-
-        if (
-            not isinstance(
-                organization_rows,
-                list
-            )
-            or not organization_rows
-        ):
-            raise RuntimeError(
-                "Organization creation failed."
-            )
-
-        organization = (
-            organization_rows[0]
-        )
-
-        organization_id = (
-            organization["id"]
-        )
-
-        # ----------------------------------------------------
-        # MAKE NEW USER THE ORGANIZATION OWNER
-        # ----------------------------------------------------
-
-        _supabase_request(
-            "POST",
-            "/rest/v1/organization_members",
-            {
-                "organization_id":
-                    organization_id,
-                "user_id":
-                    user_id,
-                "role":
-                    "owner",
-            },
-            service_role=True,
-            prefer="return=minimal",
-        )
-
-    except Exception as exc:
-
-        if organization_id:
-            _delete_organization(
-                organization_id
-            )
-
-        _delete_auth_user(
-            user_id
-        )
-
-        if isinstance(
-            exc,
-            HTTPException
-        ):
-            raise
-
+    # An existing confirmed address can return an obfuscated user with a
+    # fabricated ID. Never create a workspace or delete that ID.
+    if user.get("identities") == []:
         raise HTTPException(
-            status_code=500,
-            detail=(
-                "Account was not completed. "
-                "Please try again."
-            ),
-        ) from exc
+            status_code=409,
+            detail="If you already have an account, sign in or reset your password.",
+        )
+
+    organization = ensure_organization(user_id, organization_name)
+    organization_id = organization["id"]
 
 
     # --------------------------------------------------------
