@@ -161,8 +161,9 @@ def _supabase_request(
                 or message
             )
 
-        if code and code not in message:
-            message = f"{message} ({code})"
+        code_text = "" if code is None else str(code)
+        if code_text and code_text not in message:
+            message = f"{message} ({code_text})"
 
         headers = {}
         retry_after = exc.headers.get("Retry-After") if exc.headers else None
@@ -173,6 +174,18 @@ def _supabase_request(
             status_code=exc.code,
             detail=message,
             headers=headers,
+        ) from None
+
+    except urllib.error.URLError:
+        # HTTPError is a URLError subclass; this catches only
+        # transport failures (DNS, refused, timeout) that carry
+        # no HTTP response to surface.
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "The authentication service is unreachable. "
+                "Please try again shortly."
+            ),
         ) from None
 
 

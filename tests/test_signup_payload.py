@@ -1,12 +1,17 @@
 """Exercise the raw GoTrue signup shapes and orphaned-account recovery."""
 
 import unittest
+import io
+import json
+import urllib.error
 from unittest import mock
 
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from app.auth import SupabaseAuth
 from app.main import app
+from app.signup_routes import _supabase_request
 
 
 USER_ID = "11111111-1111-4111-8111-111111111111"
@@ -93,6 +98,24 @@ class SignupResponseTests(unittest.TestCase):
         self.assertEqual(context.organization_id, ORG["id"])
         self.assertEqual(get_orgs.call_count, 2)
         ensure.assert_called_once_with(USER_ID, "Test User's Workspace")
+
+    def test_provider_rate_limit_is_not_masked_as_server_error(self):
+        error = urllib.error.HTTPError(
+            url="https://example.supabase.co/auth/v1/signup",
+            code=429,
+            msg="Too Many Requests",
+            hdrs={"Retry-After": "120"},
+            fp=io.BytesIO(json.dumps({
+                "code": 429,
+                "msg": "Email rate limit exceeded",
+            }).encode()),
+        )
+        with mock.patch("urllib.request.urlopen", side_effect=error):
+            with self.assertRaises(HTTPException) as caught:
+                _supabase_request("POST", "/auth/v1/signup", {"email": PAYLOAD["email"]})
+        self.assertEqual(caught.exception.status_code, 429)
+        self.assertIn("Email rate limit exceeded", caught.exception.detail)
+        self.assertEqual(caught.exception.headers["Retry-After"], "120")
 
 
 if __name__ == "__main__":
