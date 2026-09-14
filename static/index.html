@@ -908,6 +908,11 @@
 <script>
 (function () {
 
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
     const loginForm =
         document.getElementById(
             "login-form"
