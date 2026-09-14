@@ -964,6 +964,39 @@
     let resendInProgress = false;
 
 
+    async function readAuthResult(response, fallback) {
+        const body = await response.text();
+        let data = null;
+
+        try {
+            data = JSON.parse(body);
+        } catch {
+            // Vercel may return plain text for an unhandled server error.
+        }
+
+        if (!response.ok) {
+            const detail = data && data.detail;
+            const message =
+                typeof detail === "string" && detail.trim()
+                    ? detail
+                    : response.status === 429
+                        ? "Too many attempts. Please try again later."
+                        : response.status >= 500
+                            ? "The account service is temporarily unavailable. Please try again."
+                            : fallback;
+            throw new Error(message);
+        }
+
+        if (!data || typeof data !== "object") {
+            throw new Error(
+                "The account service returned an unexpected response. Please try again."
+            );
+        }
+
+        return data;
+    }
+
+
     function setMode(nextMode) {
 
         mode = nextMode;
@@ -1157,16 +1190,10 @@
 
 
                 const data =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.detail ||
+                    await readAuthResult(
+                        response,
                         "Account creation failed."
                     );
-                }
 
 
                 try {
@@ -1375,17 +1402,10 @@
                         );
 
 
-                    const resendData =
-                        await resendResponse.json();
-
-
-                    if (!resendResponse.ok) {
-
-                        throw new Error(
-                            resendData.detail ||
-                            "Could not resend email."
-                        );
-                    }
+                    await readAuthResult(
+                        resendResponse,
+                        "Could not resend email."
+                    );
 
 
                     resendButton.textContent =
